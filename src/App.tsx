@@ -1,52 +1,55 @@
 
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuthContext";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppLayout } from "./components/AppLayout";
-import Dashboard from "./pages/Dashboard";
-import GestaoGado from "./pages/GestaoGado";
-import GestaoCavalos from "./pages/GestaoCavalos";
-import HistoricoSaude from "./pages/HistoricoSaude";
-import Animais from "./pages/Animais";
-import Reproducao from "./pages/Reproducao";
-import Relatorios from "./pages/Relatorios";
-import CalendarioPage from "./pages/Calendario";
-import DocumentosPage from "./pages/Documentos";
-import ConfiguracoesPage from "./pages/Configuracoes";
+import AppLayout from "./components/AppLayout";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Animais from "./pages/Animais";
+import GestaoGado from "./pages/GestaoGado";
+import Calendario from "./pages/Calendario";
+import Configuracoes from "./pages/Configuracoes";
+import Relatorios from "./pages/Relatorios";
+import Reproducao from "./pages/Reproducao";
+import HistoricoSaude from "./pages/HistoricoSaude";
+import Documentos from "./pages/Documentos";
+import GestaoCavalos from "./pages/GestaoCavalos";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
         <Routes>
-          <Route path="/auth" element={<Login />} />
-          <Route path="/" element={<AppLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<Index />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="animais" element={<Animais />} />
             <Route path="gestao-gado" element={<GestaoGado />} />
             <Route path="gestao-cavalos" element={<GestaoCavalos />} />
-            <Route path="historico-saude" element={<HistoricoSaude />} />
-            <Route path="animais" element={<Animais />} />
-            <Route path="reproducao" element={<Reproducao />} />
+            <Route path="calendario" element={<Calendario />} />
+            <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="relatorios" element={<Relatorios />} />
-            <Route path="calendario" element={<CalendarioPage />} />
-            <Route path="documentos" element={<DocumentosPage />} />
-            <Route path="configuracoes" element={<ConfiguracoesPage />} />
+            <Route path="reproducao" element={<Reproducao />} />
+            <Route path="historico-saude" element={<HistoricoSaude />} />
+            <Route path="documentos" element={<Documentos />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
-          <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <Toaster />
+      </Router>
+    </AuthProvider>
+  );
+}
 
 export default App;

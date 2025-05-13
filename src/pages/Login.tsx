@@ -2,36 +2,75 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuthContext";
 
 const Login = () => {
+  // Estados para o formulário de login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  
+  // Estados para o formulário de registro
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  
+  // Estado para mostrar erros de validação
+  const [registerError, setRegisterError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const { signIn, signUp, loading } = useAuth();
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Login bem-sucedido",
-      description: "Bem-vindo ao FazendaPlus!",
-    });
-    navigate("/");
+    await signIn(email, password);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const validateRegistration = (): boolean => {
+    if (!fullName.trim()) {
+      setRegisterError("Nome completo é obrigatório");
+      return false;
+    }
+    
+    if (!registerEmail.trim()) {
+      setRegisterError("Email é obrigatório");
+      return false;
+    }
+    
+    if (registerPassword.length < 6) {
+      setRegisterError("A senha deve ter no mínimo 6 caracteres");
+      return false;
+    }
+    
+    if (registerPassword !== confirmPassword) {
+      setRegisterError("As senhas não conferem");
+      return false;
+    }
+    
+    setRegisterError(null);
+    return true;
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Cadastro bem-sucedido",
-      description: "Sua conta foi criada com sucesso!",
-    });
-    navigate("/");
+    
+    if (!validateRegistration()) {
+      return;
+    }
+    
+    await signUp(registerEmail, registerPassword, fullName);
+    
+    // Limpar os campos após o registro
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setConfirmPassword("");
+    setFullName("");
   };
 
   return (
@@ -104,19 +143,30 @@ const Login = () => {
                     Lembrar-me
                   </label>
                 </div>
-                <Button type="submit" className="w-full bg-farm hover:bg-farm-dark">
-                  Entrar
+                <Button 
+                  type="submit" 
+                  className="w-full bg-farm hover:bg-farm-dark"
+                  disabled={loading}
+                >
+                  {loading ? "Processando..." : "Entrar"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
+                {registerError && (
+                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200">
+                    {registerError}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Nome completo</Label>
                   <Input 
                     id="register-name" 
                     placeholder="João Silva" 
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     required 
                   />
                 </div>
@@ -126,6 +176,8 @@ const Login = () => {
                     id="register-email" 
                     type="email" 
                     placeholder="seu@email.com" 
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
                     required 
                   />
                 </div>
@@ -135,6 +187,8 @@ const Login = () => {
                     id="register-password" 
                     type="password" 
                     placeholder="••••••" 
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
                     required 
                   />
                 </div>
@@ -144,24 +198,21 @@ const Login = () => {
                     id="register-confirm" 
                     type="password" 
                     placeholder="••••••" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required 
                   />
                 </div>
-                <Button type="submit" className="w-full bg-farm hover:bg-farm-dark">
-                  Criar uma conta
+                <Button 
+                  type="submit" 
+                  className="w-full bg-farm hover:bg-farm-dark"
+                  disabled={loading}
+                >
+                  {loading ? "Processando..." : "Criar uma conta"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              Novo por aqui?{" "}
-              <a href="#" className="text-farm hover:underline">
-                Criar uma conta
-              </a>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
