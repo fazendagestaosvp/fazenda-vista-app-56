@@ -8,17 +8,15 @@ import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, C
 const animalData = [
   { categoria: "Bovinos", quantidade: 25, cor: "#B67B24" },
   { categoria: "Equinos", quantidade: 8, cor: "#D19A39" },
-  { categoria: "Ovinos", quantidade: 12, cor: "#E0B25E" },
-  { categoria: "Suínos", quantidade: 5, cor: "#EAC683" },
 ];
 
 const weightData = [
-  { month: "Jan", bovinos: 450, equinos: 380, ovinos: 60 },
-  { month: "Fev", bovinos: 455, equinos: 385, ovinos: 62 },
-  { month: "Mar", bovinos: 460, equinos: 390, ovinos: 63 },
-  { month: "Abr", bovinos: 465, equinos: 395, ovinos: 64 },
-  { month: "Mai", bovinos: 470, equinos: 400, ovinos: 65 },
-  { month: "Jun", bovinos: 475, equinos: 405, ovinos: 66 },
+  { month: "Jan", bovinos: 450, equinos: 380 },
+  { month: "Fev", bovinos: 455, equinos: 385 },
+  { month: "Mar", bovinos: 460, equinos: 390 },
+  { month: "Abr", bovinos: 465, equinos: 395 },
+  { month: "Mai", bovinos: 470, equinos: 400 },
+  { month: "Jun", bovinos: 475, equinos: 405 },
 ];
 
 const healthData = [
@@ -90,7 +88,6 @@ const Relatorios = () => {
                   <Legend />
                   <Bar dataKey="bovinos" name="Bovinos (kg)" fill="#B67B24" />
                   <Bar dataKey="equinos" name="Equinos (kg)" fill="#D19A39" />
-                  <Bar dataKey="ovinos" name="Ovinos (kg)" fill="#EAC683" />
                 </RechartsBarChart>
               </ResponsiveContainer>
             </CardContent>

@@ -1,5 +1,5 @@
 
-import { ArrowDown, ArrowUp, Database, Users, Activity, Calendar } from "lucide-react";
+import { ArrowDown, ArrowUp, Database, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -12,7 +12,7 @@ const Dashboard = () => {
         <p className="text-gray-500">Visão geral da sua fazenda</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -51,27 +51,6 @@ const Dashboard = () => {
             </div>
             <Button variant="link" asChild className="mt-2 p-0 text-farm">
               <Link to="/gestao-cavalos">Ver detalhes</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Produção de Leite</p>
-                <h3 className="text-4xl font-bold mt-1">580L</h3>
-                <div className="flex items-center mt-2 text-sm text-red-500">
-                  <ArrowDown size={14} className="mr-1" />
-                  <span>2.1% último mês</span>
-                </div>
-              </div>
-              <div className="stats-icon">
-                <Activity size={24} className="text-farm" />
-              </div>
-            </div>
-            <Button variant="link" asChild className="mt-2 p-0 text-farm">
-              <Link to="/historico-saude">Ver saúde</Link>
             </Button>
           </CardContent>
         </Card>
