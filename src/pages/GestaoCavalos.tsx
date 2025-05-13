@@ -49,9 +49,6 @@ const horseSchema = z.object({
   status: z.string().min(1, {
     message: "Selecione um status",
   }),
-  trainingStatus: z.string().min(1, {
-    message: "Selecione o estado de treinamento",
-  }),
   sire: z.string().optional(),
   dam: z.string().optional(),
   birthDate: z.date().optional(),
@@ -76,8 +73,7 @@ const initialHorses = [
     breed: "Quarto de Milha",
     color: "Alazão",
     gender: "Fêmea",
-    status: "Ativo",
-    trainingStatus: "Domado",
+    status: "Ativo - Domado",
     sire: "Relâmpago (HC-056)",
     dam: "Aurora (HC-043)",
     birthDate: new Date(2020, 5, 12),
@@ -100,8 +96,7 @@ const initialHorses = [
     breed: "Mangalarga",
     color: "Preto",
     gender: "Macho",
-    status: "Em treinamento",
-    trainingStatus: "Em doma",
+    status: "Em treinamento - Em doma",
     sire: "Tempestade (HC-034)",
     dam: "Estrela (HC-028)",
     birthDate: new Date(2018, 3, 15),
@@ -126,8 +121,7 @@ const initialHorses = [
     breed: "Crioulo",
     color: "Tordilho",
     gender: "Fêmea",
-    status: "Vendido",
-    trainingStatus: "Potro",
+    status: "Vendido - Potro",
     sire: "Luar (HC-067)",
     dam: "Noite (HC-052)",
     birthDate: new Date(2022, 1, 8),
@@ -171,8 +165,7 @@ const GestaoCavalos = () => {
       breed: "",
       color: "",
       gender: "",
-      status: "Ativo",
-      trainingStatus: "Potro",
+      status: "Ativo - Potro",
       vaccinations: standardVaccinations.map(name => ({ name, date: null, applied: false })),
       customVaccinations: [],
     },
@@ -191,37 +184,37 @@ const GestaoCavalos = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    // Extrair a primeira parte do status (antes do hífen)
+    const statusParts = status.split(" - ");
+    const mainStatus = statusParts[0];
+    const trainingStatus = statusParts[1] || "";
+    
+    let badgeColor = "";
+    
+    switch (mainStatus) {
       case "Ativo":
-        return <Badge className="bg-green-500">Ativo</Badge>;
+        badgeColor = "bg-green-500";
+        break;
       case "Em treinamento":
-        return <Badge className="bg-blue-500">Em treinamento</Badge>;
+        badgeColor = "bg-blue-500";
+        break;
       case "Em descanso":
-        return <Badge className="bg-amber-500">Em descanso</Badge>;
+        badgeColor = "bg-amber-500";
+        break;
       case "Vendido":
-        return <Badge className="bg-purple-500">Vendido</Badge>;
+        badgeColor = "bg-purple-500";
+        break;
       case "Morto":
-        return <Badge className="bg-red-500">Morto</Badge>;
+        badgeColor = "bg-red-500";
+        break;
       case "Inseminado":
-        return <Badge className="bg-pink-500">Inseminado</Badge>;
+        badgeColor = "bg-pink-500";
+        break;
       default:
-        return <Badge>{status}</Badge>;
+        badgeColor = "";
     }
-  };
-
-  const getTrainingStatusBadge = (status: string) => {
-    switch (status) {
-      case "Potro":
-        return <Badge className="bg-amber-300">Potro</Badge>;
-      case "Em doma":
-        return <Badge className="bg-blue-400">Em doma</Badge>;
-      case "Domado":
-        return <Badge className="bg-green-400">Domado</Badge>;
-      case "Pronto para uso":
-        return <Badge className="bg-indigo-500">Pronto para uso</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
+    
+    return <Badge className={badgeColor}>{status}</Badge>;
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'sire' | 'dam') => {
@@ -350,7 +343,6 @@ const GestaoCavalos = () => {
       color: values.color,
       gender: values.gender,
       status: values.status,
-      trainingStatus: values.trainingStatus,
       sire: values.sire || "Não informado",
       dam: values.dam || "Não informado",
       birthDate: values.birthDate || new Date(),
@@ -467,7 +459,6 @@ const GestaoCavalos = () => {
                 <TableHead>Cor</TableHead>
                 <TableHead>Gênero</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Estado</TableHead>
                 <TableHead>Ação</TableHead>
               </TableRow>
             </TableHeader>
@@ -481,7 +472,6 @@ const GestaoCavalos = () => {
                   <TableCell>{horse.color}</TableCell>
                   <TableCell>{horse.gender}</TableCell>
                   <TableCell>{getStatusBadge(horse.status)}</TableCell>
-                  <TableCell>{getTrainingStatusBadge(horse.trainingStatus)}</TableCell>
                   <TableCell>
                     <Button 
                       variant="outline" 
@@ -545,10 +535,6 @@ const GestaoCavalos = () => {
                     <div>
                       <Label>Status</Label>
                       <p className="text-sm mt-1">{getStatusBadge(selectedHorse.status)}</p>
-                    </div>
-                    <div>
-                      <Label>Estado de Treinamento</Label>
-                      <p className="text-sm mt-1">{getTrainingStatusBadge(selectedHorse.trainingStatus)}</p>
                     </div>
                   </div>
                 </TabsContent>
@@ -869,57 +855,37 @@ const GestaoCavalos = () => {
                 )}
               />
               
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Ativo">Ativo</SelectItem>
-                          <SelectItem value="Em treinamento">Em treinamento</SelectItem>
-                          <SelectItem value="Em descanso">Em descanso</SelectItem>
-                          <SelectItem value="Vendido">Vendido</SelectItem>
-                          <SelectItem value="Morto">Morto</SelectItem>
-                          <SelectItem value="Inseminado">Inseminado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="trainingStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado de Treinamento</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o estado" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Potro">Potro</SelectItem>
-                          <SelectItem value="Em doma">Em doma</SelectItem>
-                          <SelectItem value="Domado">Domado</SelectItem>
-                          <SelectItem value="Pronto para uso">Pronto para uso</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Ativo - Potro">Ativo - Potro</SelectItem>
+                        <SelectItem value="Ativo - Em doma">Ativo - Em doma</SelectItem>
+                        <SelectItem value="Ativo - Domado">Ativo - Domado</SelectItem>
+                        <SelectItem value="Ativo - Pronto para uso">Ativo - Pronto para uso</SelectItem>
+                        <SelectItem value="Em treinamento - Em doma">Em treinamento - Em doma</SelectItem>
+                        <SelectItem value="Em treinamento - Domado">Em treinamento - Domado</SelectItem>
+                        <SelectItem value="Em descanso - Potro">Em descanso - Potro</SelectItem>
+                        <SelectItem value="Em descanso - Domado">Em descanso - Domado</SelectItem>
+                        <SelectItem value="Vendido - Potro">Vendido - Potro</SelectItem>
+                        <SelectItem value="Vendido - Domado">Vendido - Domado</SelectItem>
+                        <SelectItem value="Inseminado">Inseminado</SelectItem>
+                        <SelectItem value="Morto">Morto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <DialogFooter>
                 <Button type="submit">Salvar Cavalo</Button>
