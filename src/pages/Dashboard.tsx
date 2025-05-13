@@ -1,6 +1,8 @@
 
-import { ArrowDown, ArrowUp, Database, BookOpen, Droplet } from "lucide-react";
+import { ArrowDown, ArrowUp, Database, Users, Activity, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   return (
@@ -26,6 +28,9 @@ const Dashboard = () => {
                 <Database size={24} className="text-farm" />
               </div>
             </div>
+            <Button variant="link" asChild className="mt-2 p-0 text-farm">
+              <Link to="/gestao-gado">Ver detalhes</Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -41,9 +46,12 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="stats-icon">
-                <BookOpen size={24} className="text-farm" />
+                <Users size={24} className="text-farm" />
               </div>
             </div>
+            <Button variant="link" asChild className="mt-2 p-0 text-farm">
+              <Link to="/gestao-cavalos">Ver detalhes</Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -59,9 +67,12 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="stats-icon">
-                <Droplet size={24} className="text-farm" />
+                <Activity size={24} className="text-farm" />
               </div>
             </div>
+            <Button variant="link" asChild className="mt-2 p-0 text-farm">
+              <Link to="/historico-saude">Ver saúde</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -95,6 +106,9 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500 mt-1">Exames de rotina</p>
               </div>
             </div>
+            <Button variant="link" asChild className="mt-4 p-0 text-farm">
+              <Link to="/calendario">Ver calendário</Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -126,6 +140,9 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500 mt-1">Fornecedor de ração</p>
               </div>
             </div>
+            <Button variant="link" asChild className="mt-4 p-0 text-farm">
+              <Link to="/relatorios">Ver relatórios</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

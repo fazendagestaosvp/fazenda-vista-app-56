@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
+import GestaoGado from "./pages/GestaoGado";
+import GestaoCavalos from "./pages/GestaoCavalos";
+import HistoricoSaude from "./pages/HistoricoSaude";
 import Animais from "./pages/Animais";
 import Relatorios from "./pages/Relatorios";
 import CalendarioPage from "./pages/Calendario";
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/auth" element={<Login />} />
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="gestao-gado" element={<GestaoGado />} />
+            <Route path="gestao-cavalos" element={<GestaoCavalos />} />
+            <Route path="historico-saude" element={<HistoricoSaude />} />
             <Route path="animais" element={<Animais />} />
             <Route path="relatorios" element={<Relatorios />} />
             <Route path="calendario" element={<CalendarioPage />} />

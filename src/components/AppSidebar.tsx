@@ -1,7 +1,6 @@
 
-import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, X } from "lucide-react";
+import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, X, Users, Activity } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -31,7 +30,9 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   
   const sidebarLinks = [
     { icon: LayoutDashboard, label: "Dashboard", to: "/" },
-    { icon: Database, label: "Animais", to: "/animais" },
+    { icon: Database, label: "Gestão de Gado", to: "/gestao-gado" },
+    { icon: Users, label: "Gestão de Cavalos", to: "/gestao-cavalos" },
+    { icon: Activity, label: "Histórico de Saúde", to: "/historico-saude" },
     { icon: BarChart3, label: "Relatórios", to: "/relatorios" },
     { icon: Calendar, label: "Calendário", to: "/calendario" },
     { icon: FileText, label: "Documentos", to: "/documentos" },
