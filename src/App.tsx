@@ -17,6 +17,7 @@ import DocumentosPage from "./pages/Documentos";
 import ConfiguracoesPage from "./pages/Configuracoes";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,8 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Login />} />
           <Route path="/" element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Index />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="gestao-gado" element={<GestaoGado />} />
             <Route path="gestao-cavalos" element={<GestaoCavalos />} />
             <Route path="historico-saude" element={<HistoricoSaude />} />
