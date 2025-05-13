@@ -1,6 +1,6 @@
 
-import AnimalDistributionChart from "./AnimalDistributionChart";
-import WeightEvolutionChart from "./WeightEvolutionChart";
+import AnimalDistributionChart from "./charts/AnimalDistributionChart";
+import WeightEvolutionChart from "./charts/WeightEvolutionChart";
 import AnimalReportCard from "./AnimalReportCard";
 
 const bovineReportData = [

@@ -1,5 +1,5 @@
 
-import HealthStatusChart from "./HealthStatusChart";
+import HealthStatusChart from "./charts/HealthStatusChart";
 import AnimalReportCard from "./AnimalReportCard";
 
 const veterinaryServicesData = [
