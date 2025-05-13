@@ -141,7 +141,7 @@ const Animais = () => {
     }
   };
 
-  const handleAddSuccess = (newAnimal: any) => {
+  const handleAddSuccess = () => {
     setIsAddDialogOpen(false);
     // In a real app, we would add the new animal to the list
     toast({

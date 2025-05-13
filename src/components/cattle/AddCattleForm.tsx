@@ -17,6 +17,7 @@ import {
   CategoryField,
   GenderField,
   BirthDateField,
+  FarmEntryDateField,
   BirthSeasonField,
   WeightField,
   StatusField,
@@ -53,6 +54,7 @@ export function AddCattleForm({
       gender: "",
       status: "Saudável",
       observations: "",
+      farmEntryDate: new Date(), // Default to today
     },
   });
 
@@ -67,6 +69,7 @@ export function AddCattleForm({
         coatColor: initialData.coatColor || "",
         category: initialData.category || "Boi",
         birthDate: initialData.lastCheck || new Date(),
+        farmEntryDate: initialData.farmEntryDate || new Date(),
         birthSeason: initialData.birthSeason || "",
         weight: initialData.weight?.toString() || "",
         gender: initialData.gender || "",
@@ -94,6 +97,7 @@ export function AddCattleForm({
         initialData.status = data.status;
         initialData.gender = data.gender;
         initialData.lastCheck = data.birthDate;
+        initialData.farmEntryDate = data.farmEntryDate;
         initialData.birthSeason = data.birthSeason;
         initialData.observations = data.observations;
       }
@@ -119,6 +123,7 @@ export function AddCattleForm({
         <CategoryField control={form.control} />
         <GenderField control={form.control} />
         <BirthDateField control={form.control} />
+        <FarmEntryDateField control={form.control} />
         <BirthSeasonField control={form.control} />
         <WeightField control={form.control} />
         <StatusField control={form.control} />

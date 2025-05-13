@@ -1,4 +1,3 @@
-
 import { CalendarIcon, IdCard, Droplet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -68,9 +67,9 @@ export const NameField = ({ control }: { control: any }) => (
     name="name"
     render={({ field }) => (
       <FormItem>
-        <FormLabel>Nome</FormLabel>
+        <FormLabel>Nome (opcional)</FormLabel>
         <FormControl>
-          <Input placeholder="Nome do animal" {...field} />
+          <Input placeholder="Nome do animal (opcional)" {...field} />
         </FormControl>
         <FormMessage />
       </FormItem>
@@ -185,6 +184,49 @@ export const BirthDateField = ({ control }: { control: any }) => (
     render={({ field }) => (
       <FormItem className="flex flex-col">
         <FormLabel>Data de Nascimento</FormLabel>
+        <Popover>
+          <PopoverTrigger asChild>
+            <FormControl>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full pl-3 text-left font-normal",
+                  !field.value && "text-muted-foreground"
+                )}
+              >
+                {field.value ? (
+                  format(field.value, "dd/MM/yyyy")
+                ) : (
+                  <span>Selecione a data</span>
+                )}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </FormControl>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={field.value}
+              onSelect={field.onChange}
+              disabled={(date) => date > new Date()}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
+export const FarmEntryDateField = ({ control }: { control: any }) => (
+  <FormField
+    control={control}
+    name="farmEntryDate"
+    render={({ field }) => (
+      <FormItem className="flex flex-col">
+        <FormLabel>Data de Entrada na Fazenda</FormLabel>
         <Popover>
           <PopoverTrigger asChild>
             <FormControl>

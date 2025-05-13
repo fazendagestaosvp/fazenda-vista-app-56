@@ -8,9 +8,7 @@ export const cattleFormSchema = z.object({
   identification: z.string().min(1, {
     message: "Identificação é obrigatória",
   }),
-  name: z.string().min(1, {
-    message: "Nome é obrigatório",
-  }),
+  name: z.string().optional(), // Changed from required to optional
   breed: z.string().min(1, {
     message: "Raça é obrigatória",
   }),
@@ -22,6 +20,9 @@ export const cattleFormSchema = z.object({
   }),
   birthDate: z.date({
     required_error: "Data de nascimento é obrigatória",
+  }),
+  farmEntryDate: z.date({
+    required_error: "Data de entrada na fazenda é obrigatória",
   }),
   birthSeason: z.string().min(1, {
     message: "Época de nascimento é obrigatória",
