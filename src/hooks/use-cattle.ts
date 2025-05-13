@@ -96,14 +96,18 @@ export function useCattle() {
     }
   };
 
-  const handleEditSuccess = (updatedAnimal: any) => {
-    setCattle(cattle.map(animal => 
-      animal.id === updatedAnimal.id ? updatedAnimal : animal
-    ));
+  const handleEditSuccess = (updatedAnimal: any = null) => {
+    // Se temos um animal atualizado, atualizamos a lista
+    // Se não, apenas fechamos o diálogo
+    if (updatedAnimal) {
+      setCattle(cattle.map(animal => 
+        animal.id === updatedAnimal.id ? updatedAnimal : animal
+      ));
+    }
     setIsEditDialogOpen(false);
     toast({
       title: "Animal atualizado",
-      description: `As informações do animal ${updatedAnimal.name} foram atualizadas.`
+      description: `As informações do animal foram atualizadas.`
     });
   };
 
