@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ArrowDown, ArrowUp, Search, Plus, Upload, Camera, Check, AlertTriangle, Syringe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -38,10 +37,10 @@ const horseSchema = z.object({
     message: "O nome deve ter pelo menos 2 caracteres",
   }),
   breed: z.string().min(1, {
-    message: "Selecione uma raça",
+    message: "A raça é obrigatória",
   }),
   color: z.string().min(1, {
-    message: "Selecione uma cor",
+    message: "A cor é obrigatória",
   }),
   gender: z.string().min(1, {
     message: "Selecione um gênero",
@@ -397,7 +396,7 @@ const GestaoCavalos = () => {
                 <h3 className="text-4xl font-bold mt-1">
                   {horses.filter(h => h.gender === "Fêmea").length}
                 </h3>
-                <div className="flex items-center mt-2 text-sm text-gray-500">
+                <div className="flex items-center mt-2 text-sm text-green-500">
                   <span>{Math.round((horses.filter(h => h.gender === "Fêmea").length / horses.length) * 100)}% do total</span>
                 </div>
               </div>
@@ -783,20 +782,9 @@ const GestaoCavalos = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Raça</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a raça" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Quarto de Milha">Quarto de Milha</SelectItem>
-                          <SelectItem value="Mangalarga">Mangalarga</SelectItem>
-                          <SelectItem value="Crioulo">Crioulo</SelectItem>
-                          <SelectItem value="Árabe">Árabe</SelectItem>
-                          <SelectItem value="Puro Sangue Inglês">Puro Sangue Inglês</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input placeholder="Digite a raça do cavalo" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -808,20 +796,9 @@ const GestaoCavalos = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cor</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a cor" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Alazão">Alazão</SelectItem>
-                          <SelectItem value="Preto">Preto</SelectItem>
-                          <SelectItem value="Baio">Baio</SelectItem>
-                          <SelectItem value="Tordilho">Tordilho</SelectItem>
-                          <SelectItem value="Ruano">Ruano</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input placeholder="Digite a cor do cavalo" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -868,16 +845,11 @@ const GestaoCavalos = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Ativo - Potro">Ativo - Potro</SelectItem>
-                        <SelectItem value="Ativo - Em doma">Ativo - Em doma</SelectItem>
-                        <SelectItem value="Ativo - Domado">Ativo - Domado</SelectItem>
-                        <SelectItem value="Ativo - Pronto para uso">Ativo - Pronto para uso</SelectItem>
-                        <SelectItem value="Em treinamento - Em doma">Em treinamento - Em doma</SelectItem>
-                        <SelectItem value="Em treinamento - Domado">Em treinamento - Domado</SelectItem>
-                        <SelectItem value="Em descanso - Potro">Em descanso - Potro</SelectItem>
-                        <SelectItem value="Em descanso - Domado">Em descanso - Domado</SelectItem>
-                        <SelectItem value="Vendido - Potro">Vendido - Potro</SelectItem>
-                        <SelectItem value="Vendido - Domado">Vendido - Domado</SelectItem>
+                        <SelectItem value="Ativo - Potro">Potro</SelectItem>
+                        <SelectItem value="Ativo - Em doma">Em doma</SelectItem>
+                        <SelectItem value="Ativo - Domado">Domado</SelectItem>
+                        <SelectItem value="Em descanso">Em descanso</SelectItem>
+                        <SelectItem value="Vendido">Vendido</SelectItem>
                         <SelectItem value="Inseminado">Inseminado</SelectItem>
                         <SelectItem value="Morto">Morto</SelectItem>
                       </SelectContent>
