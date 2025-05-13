@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -37,6 +37,9 @@ const cattleFormSchema = z.object({
   identification: z.string().min(1, {
     message: "Identificação é obrigatória",
   }),
+  name: z.string().min(1, {
+    message: "Nome é obrigatório",
+  }),
   breed: z.string().min(1, {
     message: "Raça é obrigatória",
   }),
@@ -49,6 +52,9 @@ const cattleFormSchema = z.object({
   weight: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Peso deve ser um número",
   }),
+  gender: z.string().min(1, {
+    message: "Gênero é obrigatório",
+  }),
   status: z.string().min(1, {
     message: "Status é obrigatório",
   }),
@@ -60,9 +66,11 @@ type CattleFormValues = z.infer<typeof cattleFormSchema>;
 interface AddCattleFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  initialData?: any;
+  isEditing?: boolean;
 }
 
-export function AddCattleForm({ onSuccess, onCancel }: AddCattleFormProps) {
+export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = false }: AddCattleFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,13 +78,32 @@ export function AddCattleForm({ onSuccess, onCancel }: AddCattleFormProps) {
     resolver: zodResolver(cattleFormSchema),
     defaultValues: {
       identification: "",
+      name: "",
       breed: "",
       category: "",
       weight: "",
+      gender: "",
       status: "Saudável",
       observations: "",
     },
   });
+
+  // Populate the form with initial data if editing
+  useEffect(() => {
+    if (initialData && isEditing) {
+      form.reset({
+        identification: initialData.id || "",
+        name: initialData.name || "",
+        breed: initialData.type || "",
+        category: initialData.category || "Boi",
+        birthDate: initialData.lastCheck || new Date(),
+        weight: initialData.weight?.toString() || "",
+        gender: initialData.gender || "",
+        status: initialData.status || "Saudável",
+        observations: initialData.observations || "",
+      });
+    }
+  }, [initialData, isEditing, form]);
 
   const onSubmit = (data: CattleFormValues) => {
     setIsSubmitting(true);
@@ -84,13 +111,41 @@ export function AddCattleForm({ onSuccess, onCancel }: AddCattleFormProps) {
     // Simulate API call
     setTimeout(() => {
       console.log("Submitted cattle data:", data);
+      
+      // Update the current cattle data if editing
+      if (isEditing && initialData) {
+        initialData.id = data.identification;
+        initialData.name = data.name;
+        initialData.type = data.breed;
+        initialData.age = calculateAge(data.birthDate);
+        initialData.weight = parseFloat(data.weight);
+        initialData.status = data.status;
+        initialData.gender = data.gender;
+        initialData.lastCheck = data.birthDate;
+        initialData.observations = data.observations;
+      }
+
       toast({
-        title: "Animal adicionado com sucesso",
+        title: isEditing ? "Animal atualizado com sucesso" : "Animal adicionado com sucesso",
         description: `ID: ${data.identification}`,
       });
+      
       setIsSubmitting(false);
       onSuccess();
     }, 1000);
+  };
+
+  // Helper function to calculate age from birth date
+  const calculateAge = (birthDate: Date): number => {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
   };
 
   return (
@@ -104,6 +159,20 @@ export function AddCattleForm({ onSuccess, onCancel }: AddCattleFormProps) {
               <FormLabel>Identificação/Tag</FormLabel>
               <FormControl>
                 <Input placeholder="BG-101" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome do animal" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -156,6 +225,28 @@ export function AddCattleForm({ onSuccess, onCancel }: AddCattleFormProps) {
                   <SelectItem value="Vaca">Vaca</SelectItem>
                   <SelectItem value="Touro">Touro</SelectItem>
                   <SelectItem value="Boi">Boi</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Gênero</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o gênero" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Macho">Macho</SelectItem>
+                  <SelectItem value="Fêmea">Fêmea</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -270,10 +361,10 @@ export function AddCattleForm({ onSuccess, onCancel }: AddCattleFormProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
+                {isEditing ? "Atualizando..." : "Salvando..."}
               </>
             ) : (
-              "Salvar Animal"
+              isEditing ? "Atualizar Animal" : "Salvar Animal"
             )}
           </Button>
         </div>

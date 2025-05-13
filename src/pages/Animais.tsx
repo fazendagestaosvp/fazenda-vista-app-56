@@ -1,11 +1,14 @@
 
 import { useState } from "react";
-import { Plus, Search, Filter, FileDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, Filter, FileDown, ArrowUp, ArrowDown, Eye, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
+import { AddCattleForm } from "@/components/cattle/AddCattleForm";
 
 interface Animal {
   id: string;
@@ -78,9 +81,14 @@ const mockAnimals: Animal[] = [
 ];
 
 const Animais = () => {
+  const [animals, setAnimals] = useState<Animal[]>(mockAnimals);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<keyof Animal | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [currentAnimal, setCurrentAnimal] = useState<Animal | null>(null);
 
   const handleSort = (field: keyof Animal) => {
     if (sortField === field) {
@@ -91,7 +99,7 @@ const Animais = () => {
     }
   };
 
-  const sortedAnimals = [...mockAnimals].sort((a, b) => {
+  const sortedAnimals = [...animals].sort((a, b) => {
     if (!sortField) return 0;
     
     const valA = a[sortField];
@@ -111,6 +119,77 @@ const Animais = () => {
   const SortIcon = ({ field }: { field: keyof Animal }) => {
     if (sortField !== field) return null;
     return sortDirection === "asc" ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />;
+  };
+  
+  const handleViewAnimal = (animal: Animal) => {
+    setCurrentAnimal(animal);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEditAnimal = (animal: Animal) => {
+    setCurrentAnimal(animal);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteAnimal = (animalId: string) => {
+    if (confirm("Tem certeza que deseja excluir este animal?")) {
+      setAnimals(animals.filter(animal => animal.id !== animalId));
+      toast({
+        title: "Animal excluído",
+        description: `O animal com ID ${animalId} foi removido com sucesso.`
+      });
+    }
+  };
+
+  const handleAddSuccess = (newAnimal: any) => {
+    setIsAddDialogOpen(false);
+    // In a real app, we would add the new animal to the list
+    toast({
+      title: "Animal adicionado",
+      description: "O animal foi adicionado com sucesso."
+    });
+  };
+
+  const handleEditSuccess = (updatedAnimal: any) => {
+    setAnimals(animals.map(animal => 
+      animal.id === updatedAnimal.id ? updatedAnimal : animal
+    ));
+    setIsEditDialogOpen(false);
+    toast({
+      title: "Animal atualizado",
+      description: "As informações do animal foram atualizadas."
+    });
+  };
+
+  // Convert the animal data to a format compatible with AddCattleForm
+  const convertToCattleFormat = (animal: Animal) => {
+    return {
+      id: animal.identificacao,
+      name: animal.numero,
+      type: animal.raca,
+      age: calculateAgeFromDateString(animal.dataNascimento),
+      weight: animal.pesoKg,
+      status: animal.status,
+      gender: animal.sexo === "M" ? "Macho" : "Fêmea",
+      lastCheck: new Date(),
+      category: "Boi", // Default category
+      observations: ""
+    };
+  };
+
+  // Helper function to calculate age from string date
+  const calculateAgeFromDateString = (dateString: string): number => {
+    const [day, month, year] = dateString.split('/').map(Number);
+    const birthDate = new Date(year, month - 1, day);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
   };
 
   return (
@@ -155,7 +234,10 @@ const Animais = () => {
                 Exportar
               </Button>
               
-              <Button className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2">
+              <Button 
+                className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
                 <Plus size={16} />
                 Novo Animal
               </Button>
@@ -206,12 +288,13 @@ const Animais = () => {
                       Última Vacinação <SortIcon field="ultimaVacinacao" />
                     </div>
                   </TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAnimals.length > 0 ? (
                   filteredAnimals.map((animal) => (
-                    <TableRow key={animal.id} className="cursor-pointer hover:bg-gray-50">
+                    <TableRow key={animal.id} className="hover:bg-gray-50">
                       <TableCell>{animal.numero}</TableCell>
                       <TableCell className="font-medium">{animal.identificacao}</TableCell>
                       <TableCell>{animal.sexo}</TableCell>
@@ -224,11 +307,24 @@ const Animais = () => {
                         </span>
                       </TableCell>
                       <TableCell>{animal.ultimaVacinacao}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewAnimal(animal)}>
+                            <Eye size={16} />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditAnimal(animal)}>
+                            <Pencil size={16} />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteAnimal(animal.id)}>
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                    <TableCell colSpan={9} className="text-center py-6 text-gray-500">
                       Nenhum animal encontrado.
                     </TableCell>
                   </TableRow>
@@ -238,6 +334,88 @@ const Animais = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Animal Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-farm">Adicionar Novo Animal</DialogTitle>
+          </DialogHeader>
+          <AddCattleForm 
+            onSuccess={handleAddSuccess}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Animal Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-farm">Detalhes do Animal</DialogTitle>
+          </DialogHeader>
+          {currentAnimal && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Número</p>
+                  <p>{currentAnimal.numero}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Identificação</p>
+                  <p>{currentAnimal.identificacao}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Sexo</p>
+                  <p>{currentAnimal.sexo === 'M' ? 'Macho' : 'Fêmea'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Raça</p>
+                  <p>{currentAnimal.raca}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Data de Nascimento</p>
+                  <p>{currentAnimal.dataNascimento}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Peso</p>
+                  <p>{currentAnimal.pesoKg} kg</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Status</p>
+                  <p>{currentAnimal.status}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Última Vacinação</p>
+                  <p>{currentAnimal.ultimaVacinacao}</p>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Animal Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-farm">Editar Animal</DialogTitle>
+          </DialogHeader>
+          {currentAnimal && (
+            <AddCattleForm 
+              onSuccess={() => handleEditSuccess(currentAnimal)}
+              onCancel={() => setIsEditDialogOpen(false)}
+              initialData={convertToCattleFormat(currentAnimal)}
+              isEditing={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

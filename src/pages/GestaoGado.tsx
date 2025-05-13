@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { ArrowDown, ArrowUp, Search, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Search, Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AddCattleForm } from "@/components/cattle/AddCattleForm";
+import { toast } from "@/hooks/use-toast";
 
 // Sample cattle data
 const initialCattle = [
@@ -67,6 +68,9 @@ const GestaoGado = () => {
   const [cattle, setCattle] = useState(initialCattle);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [currentCattle, setCurrentCattle] = useState<any>(null);
 
   const filteredCattle = cattle.filter(
     (animal) =>
@@ -97,6 +101,37 @@ const GestaoGado = () => {
   const handleAddCattleSuccess = () => {
     setIsAddDialogOpen(false);
     // In a real application, we would refresh the cattle list here
+  };
+
+  const handleViewCattle = (animal: any) => {
+    setCurrentCattle(animal);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEditCattle = (animal: any) => {
+    setCurrentCattle(animal);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteCattle = (animalId: string) => {
+    if (confirm("Tem certeza que deseja excluir este animal?")) {
+      setCattle(cattle.filter(animal => animal.id !== animalId));
+      toast({
+        title: "Animal excluído",
+        description: `O animal com ID ${animalId} foi removido com sucesso.`
+      });
+    }
+  };
+
+  const handleEditSuccess = (updatedAnimal: any) => {
+    setCattle(cattle.map(animal => 
+      animal.id === updatedAnimal.id ? updatedAnimal : animal
+    ));
+    setIsEditDialogOpen(false);
+    toast({
+      title: "Animal atualizado",
+      description: `As informações do animal ${updatedAnimal.name} foram atualizadas.`
+    });
   };
 
   return (
@@ -189,6 +224,7 @@ const GestaoGado = () => {
                 <TableHead>Peso (kg)</TableHead>
                 <TableHead>Gênero</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -201,6 +237,19 @@ const GestaoGado = () => {
                   <TableCell>{animal.weight}</TableCell>
                   <TableCell>{animal.gender}</TableCell>
                   <TableCell>{getStatusBadge(animal.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleViewCattle(animal)}>
+                        <Eye size={16} />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditCattle(animal)}>
+                        <Pencil size={16} />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteCattle(animal.id)}>
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -218,6 +267,75 @@ const GestaoGado = () => {
             onSuccess={handleAddCattleSuccess}
             onCancel={() => setIsAddDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Cattle Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-farm">Detalhes do Animal</DialogTitle>
+          </DialogHeader>
+          {currentCattle && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">ID</p>
+                  <p>{currentCattle.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Nome</p>
+                  <p>{currentCattle.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Raça</p>
+                  <p>{currentCattle.type}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Idade</p>
+                  <p>{currentCattle.age} anos</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Peso</p>
+                  <p>{currentCattle.weight} kg</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Gênero</p>
+                  <p>{currentCattle.gender}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Status</p>
+                  <p>{currentCattle.status}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Última Verificação</p>
+                  <p>{currentCattle.lastCheck.toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Cattle Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-farm">Editar Animal</DialogTitle>
+          </DialogHeader>
+          {currentCattle && (
+            <AddCattleForm 
+              onSuccess={() => handleEditSuccess(currentCattle)}
+              onCancel={() => setIsEditDialogOpen(false)}
+              initialData={currentCattle}
+              isEditing={true}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
