@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, IdCard, Circle, Droplet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +34,9 @@ import {
 } from "@/components/ui/popover";
 
 const cattleFormSchema = z.object({
+  earTagNumber: z.string().min(1, {
+    message: "Número do brinco é obrigatório",
+  }),
   identification: z.string().min(1, {
     message: "Identificação é obrigatória",
   }),
@@ -43,11 +46,17 @@ const cattleFormSchema = z.object({
   breed: z.string().min(1, {
     message: "Raça é obrigatória",
   }),
+  coatColor: z.string().min(1, {
+    message: "Pelagem é obrigatória",
+  }),
   category: z.string().min(1, {
     message: "Categoria é obrigatória",
   }),
   birthDate: z.date({
     required_error: "Data de nascimento é obrigatória",
+  }),
+  birthSeason: z.string().min(1, {
+    message: "Época de nascimento é obrigatória",
   }),
   weight: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Peso deve ser um número",
@@ -77,10 +86,13 @@ export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = fa
   const form = useForm<CattleFormValues>({
     resolver: zodResolver(cattleFormSchema),
     defaultValues: {
+      earTagNumber: "",
       identification: "",
       name: "",
       breed: "",
+      coatColor: "",
       category: "",
+      birthSeason: "",
       weight: "",
       gender: "",
       status: "Saudável",
@@ -92,11 +104,14 @@ export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = fa
   useEffect(() => {
     if (initialData && isEditing) {
       form.reset({
+        earTagNumber: initialData.id || "",
         identification: initialData.id || "",
         name: initialData.name || "",
         breed: initialData.type || "",
+        coatColor: initialData.coatColor || "",
         category: initialData.category || "Boi",
         birthDate: initialData.lastCheck || new Date(),
+        birthSeason: initialData.birthSeason || "",
         weight: initialData.weight?.toString() || "",
         gender: initialData.gender || "",
         status: initialData.status || "Saudável",
@@ -114,14 +129,16 @@ export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = fa
       
       // Update the current cattle data if editing
       if (isEditing && initialData) {
-        initialData.id = data.identification;
+        initialData.id = data.earTagNumber;
         initialData.name = data.name;
         initialData.type = data.breed;
+        initialData.coatColor = data.coatColor;
         initialData.age = calculateAge(data.birthDate);
         initialData.weight = parseFloat(data.weight);
         initialData.status = data.status;
         initialData.gender = data.gender;
         initialData.lastCheck = data.birthDate;
+        initialData.birthSeason = data.birthSeason;
         initialData.observations = data.observations;
       }
 
@@ -151,6 +168,23 @@ export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = fa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="earTagNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Número do Brinco</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Input placeholder="12345" className="pl-10" {...field} />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="identification"
@@ -202,6 +236,23 @@ export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = fa
                   <SelectItem value="Outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="coatColor"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Pelagem</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Droplet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Input placeholder="Cor da pelagem" className="pl-10" {...field} />
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -290,6 +341,28 @@ export function AddCattleForm({ onSuccess, onCancel, initialData, isEditing = fa
                   />
                 </PopoverContent>
               </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="birthSeason"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Época de Nascimento</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a época" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Primavera">Primavera</SelectItem>
+                  <SelectItem value="Outono">Outono</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

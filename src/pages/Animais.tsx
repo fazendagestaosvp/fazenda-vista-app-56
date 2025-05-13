@@ -167,11 +167,13 @@ const Animais = () => {
       id: animal.identificacao,
       name: animal.numero,
       type: animal.raca,
+      coatColor: "", // Add this field
       age: calculateAgeFromDateString(animal.dataNascimento),
       weight: animal.pesoKg,
       status: animal.status,
       gender: animal.sexo === "M" ? "Macho" : "Fêmea",
       lastCheck: new Date(),
+      birthSeason: "", // Add this field
       category: "Boi", // Default category
       observations: ""
     };
@@ -374,8 +376,16 @@ const Animais = () => {
                   <p>{currentAnimal.raca}</p>
                 </div>
                 <div>
+                  <p className="text-sm font-medium text-gray-500">Pelagem</p>
+                  <p>{"Não especificada"}</p>
+                </div>
+                <div>
                   <p className="text-sm font-medium text-gray-500">Data de Nascimento</p>
                   <p>{currentAnimal.dataNascimento}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Época de Nascimento</p>
+                  <p>{"Não especificada"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Peso</p>

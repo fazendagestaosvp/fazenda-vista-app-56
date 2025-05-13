@@ -292,8 +292,16 @@ const GestaoGado = () => {
                   <p>{currentCattle.type}</p>
                 </div>
                 <div>
+                  <p className="text-sm font-medium text-gray-500">Pelagem</p>
+                  <p>{currentCattle.coatColor || "Não especificada"}</p>
+                </div>
+                <div>
                   <p className="text-sm font-medium text-gray-500">Idade</p>
                   <p>{currentCattle.age} anos</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Época de Nascimento</p>
+                  <p>{currentCattle.birthSeason || "Não especificada"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Peso</p>
