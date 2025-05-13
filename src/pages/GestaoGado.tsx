@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AddCattleForm } from "@/components/cattle/AddCattleForm";
 
 // Sample cattle data
 const initialCattle = [
@@ -64,6 +66,7 @@ const initialCattle = [
 const GestaoGado = () => {
   const [cattle, setCattle] = useState(initialCattle);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const filteredCattle = cattle.filter(
     (animal) =>
@@ -80,9 +83,20 @@ const GestaoGado = () => {
         return <Badge className="bg-amber-500">Em tratamento</Badge>;
       case "Em observação":
         return <Badge className="bg-blue-500">Em observação</Badge>;
+      case "Doente":
+        return <Badge className="bg-red-500">Doente</Badge>;
+      case "Vendido":
+        return <Badge className="bg-purple-500">Vendido</Badge>;
+      case "Óbito":
+        return <Badge className="bg-gray-500">Óbito</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
+  };
+
+  const handleAddCattleSuccess = () => {
+    setIsAddDialogOpen(false);
+    // In a real application, we would refresh the cattle list here
   };
 
   return (
@@ -154,7 +168,10 @@ const GestaoGado = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button className="bg-farm hover:bg-farm-dark">
+              <Button 
+                className="bg-farm hover:bg-farm-dark"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
                 <Plus size={16} className="mr-2" />
                 Adicionar
               </Button>
@@ -190,6 +207,19 @@ const GestaoGado = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Add Cattle Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-farm">Adicionar Novo Animal</DialogTitle>
+          </DialogHeader>
+          <AddCattleForm 
+            onSuccess={handleAddCattleSuccess}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
