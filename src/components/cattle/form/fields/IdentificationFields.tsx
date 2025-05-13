@@ -1,5 +1,5 @@
 
-import { IdCard } from "lucide-react";
+import { Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import {
@@ -11,34 +11,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-export const EarTagField = ({ control }: { control: any }) => (
+export const EarTagIdField = ({ control }: { control: any }) => (
   <FormField
     control={control}
-    name="earTagNumber"
+    name="earTagId"
     render={({ field }) => (
       <FormItem>
-        <FormLabel>Número do Brinco</FormLabel>
+        <FormLabel>Brinco/Tag</FormLabel>
         <FormControl>
           <div className="relative">
-            <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input placeholder="12345" className="pl-10" {...field} />
+            <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Input placeholder="BG-101" className="pl-10" {...field} />
           </div>
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-);
-
-export const IdentificationField = ({ control }: { control: any }) => (
-  <FormField
-    control={control}
-    name="identification"
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>Identificação/Tag</FormLabel>
-        <FormControl>
-          <Input placeholder="BG-101" {...field} />
         </FormControl>
         <FormMessage />
       </FormItem>

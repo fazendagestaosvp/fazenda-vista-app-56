@@ -2,11 +2,8 @@
 import { z } from "zod";
 
 export const cattleFormSchema = z.object({
-  earTagNumber: z.string().min(1, {
-    message: "Número do brinco é obrigatório",
-  }),
-  identification: z.string().min(1, {
-    message: "Identificação é obrigatória",
+  earTagId: z.string().min(1, {
+    message: "Brinco/Tag é obrigatório",
   }),
   name: z.string().optional(), // Changed from required to optional
   breed: z.string().min(1, {

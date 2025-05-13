@@ -9,8 +9,7 @@ import { cattleFormSchema, type CattleFormValues } from "./form/cattleFormSchema
 import { calculateAge } from "./form/cattleUtils";
 import { FormActions } from "./form/FormActions";
 import {
-  EarTagField,
-  IdentificationField,
+  EarTagIdField,
   NameField,
   BreedField,
   CoatColorField,
@@ -43,8 +42,7 @@ export function AddCattleForm({
   const form = useForm<CattleFormValues>({
     resolver: zodResolver(cattleFormSchema),
     defaultValues: {
-      earTagNumber: "",
-      identification: "",
+      earTagId: "",
       name: "",
       breed: "",
       coatColor: "",
@@ -62,8 +60,7 @@ export function AddCattleForm({
   useEffect(() => {
     if (initialData && isEditing) {
       form.reset({
-        earTagNumber: initialData.id || "",
-        identification: initialData.id || "",
+        earTagId: initialData.id || "",
         name: initialData.name || "",
         breed: initialData.type || "",
         coatColor: initialData.coatColor || "",
@@ -88,7 +85,7 @@ export function AddCattleForm({
       
       // Update the current cattle data if editing
       if (isEditing && initialData) {
-        initialData.id = data.earTagNumber;
+        initialData.id = data.earTagId;
         initialData.name = data.name;
         initialData.type = data.breed;
         initialData.coatColor = data.coatColor;
@@ -104,7 +101,7 @@ export function AddCattleForm({
 
       toast({
         title: isEditing ? "Animal atualizado com sucesso" : "Animal adicionado com sucesso",
-        description: `ID: ${data.identification}`,
+        description: `ID: ${data.earTagId}`,
       });
       
       setIsSubmitting(false);
@@ -115,8 +112,7 @@ export function AddCattleForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <EarTagField control={form.control} />
-        <IdentificationField control={form.control} />
+        <EarTagIdField control={form.control} />
         <NameField control={form.control} />
         <BreedField control={form.control} />
         <CoatColorField control={form.control} />

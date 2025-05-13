@@ -1,8 +1,7 @@
 
 // This file is now just re-exporting all form fields from their respective files
 export {
-  EarTagField,
-  IdentificationField,
+  EarTagIdField,
   NameField,
   BreedField,
   CoatColorField,
