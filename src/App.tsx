@@ -10,6 +10,7 @@ import GestaoGado from "./pages/GestaoGado";
 import GestaoCavalos from "./pages/GestaoCavalos";
 import HistoricoSaude from "./pages/HistoricoSaude";
 import Animais from "./pages/Animais";
+import Reproducao from "./pages/Reproducao";
 import Relatorios from "./pages/Relatorios";
 import CalendarioPage from "./pages/Calendario";
 import DocumentosPage from "./pages/Documentos";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="gestao-cavalos" element={<GestaoCavalos />} />
             <Route path="historico-saude" element={<HistoricoSaude />} />
             <Route path="animais" element={<Animais />} />
+            <Route path="reproducao" element={<Reproducao />} />
             <Route path="relatorios" element={<Relatorios />} />
             <Route path="calendario" element={<CalendarioPage />} />
             <Route path="documentos" element={<DocumentosPage />} />
