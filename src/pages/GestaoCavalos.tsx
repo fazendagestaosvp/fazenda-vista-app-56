@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { ArrowDown, ArrowUp, Search, Plus, Upload, Camera } from "lucide-react";
+import { ArrowDown, ArrowUp, Search, Plus, Upload, Camera, Check, AlertTriangle, Syringe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,61 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+// Define the horse schema
+const horseSchema = z.object({
+  name: z.string().min(2, {
+    message: "O nome deve ter pelo menos 2 caracteres",
+  }),
+  breed: z.string().min(1, {
+    message: "Selecione uma raça",
+  }),
+  color: z.string().min(1, {
+    message: "Selecione uma cor",
+  }),
+  gender: z.string().min(1, {
+    message: "Selecione um gênero",
+  }),
+  status: z.string().min(1, {
+    message: "Selecione um status",
+  }),
+  trainingStatus: z.string().min(1, {
+    message: "Selecione o estado de treinamento",
+  }),
+  sire: z.string().optional(),
+  dam: z.string().optional(),
+  birthDate: z.date().optional(),
+  vaccinations: z.array(z.object({
+    name: z.string(),
+    date: z.date().optional(),
+    applied: z.boolean().default(false),
+  })),
+  customVaccinations: z.array(z.object({
+    name: z.string(),
+    date: z.date().optional(),
+    applied: z.boolean().default(false),
+  })).default([]),
+});
 
 // Sample horse data
 const initialHorses = [
@@ -22,11 +77,21 @@ const initialHorses = [
     color: "Alazão",
     gender: "Fêmea",
     status: "Ativo",
+    trainingStatus: "Domado",
     sire: "Relâmpago (HC-056)",
     dam: "Aurora (HC-043)",
     birthDate: new Date(2020, 5, 12),
     sireImage: "",
     damImage: "",
+    vaccinations: [
+      { name: "Herpes", date: new Date(2023, 2, 15), applied: true },
+      { name: "Leptospirose", date: new Date(2023, 5, 20), applied: true },
+      { name: "Mórmon", date: null, applied: false },
+      { name: "Influenza", date: new Date(2023, 8, 10), applied: true },
+      { name: "Encefalomielite", date: new Date(2023, 11, 5), applied: true },
+      { name: "Garrotilho", date: null, applied: false },
+    ],
+    customVaccinations: [],
   },
   {
     id: "HC-102",
@@ -36,11 +101,23 @@ const initialHorses = [
     color: "Preto",
     gender: "Macho",
     status: "Em treinamento",
+    trainingStatus: "Em doma",
     sire: "Tempestade (HC-034)",
     dam: "Estrela (HC-028)",
     birthDate: new Date(2018, 3, 15),
     sireImage: "",
     damImage: "",
+    vaccinations: [
+      { name: "Herpes", date: new Date(2022, 1, 10), applied: true },
+      { name: "Leptospirose", date: new Date(2022, 4, 12), applied: true },
+      { name: "Mórmon", date: new Date(2022, 7, 15), applied: true },
+      { name: "Influenza", date: new Date(2022, 10, 8), applied: true },
+      { name: "Encefalomielite", date: new Date(2023, 1, 7), applied: true },
+      { name: "Garrotilho", date: new Date(2023, 4, 9), applied: true },
+    ],
+    customVaccinations: [
+      { name: "Tétano", date: new Date(2023, 3, 25), applied: true },
+    ],
   },
   {
     id: "HC-103",
@@ -49,13 +126,33 @@ const initialHorses = [
     breed: "Crioulo",
     color: "Tordilho",
     gender: "Fêmea",
-    status: "Ativo",
+    status: "Vendido",
+    trainingStatus: "Potro",
     sire: "Luar (HC-067)",
     dam: "Noite (HC-052)",
     birthDate: new Date(2022, 1, 8),
     sireImage: "",
     damImage: "",
+    vaccinations: [
+      { name: "Herpes", date: new Date(2023, 2, 15), applied: true },
+      { name: "Leptospirose", date: new Date(2023, 5, 20), applied: true },
+      { name: "Mórmon", date: null, applied: false },
+      { name: "Influenza", date: new Date(2023, 8, 10), applied: true },
+      { name: "Encefalomielite", date: null, applied: false },
+      { name: "Garrotilho", date: null, applied: false },
+    ],
+    customVaccinations: [],
   },
+];
+
+// Define the standard vaccinations
+const standardVaccinations = [
+  "Herpes",
+  "Leptospirose",
+  "Mórmon",
+  "Influenza",
+  "Encefalomielite",
+  "Garrotilho"
 ];
 
 const GestaoCavalos = () => {
@@ -63,6 +160,23 @@ const GestaoCavalos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedHorse, setSelectedHorse] = useState<typeof initialHorses[0] | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddHorseDialogOpen, setIsAddHorseDialogOpen] = useState(false);
+  const [newVaccineName, setNewVaccineName] = useState("");
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof horseSchema>>({
+    resolver: zodResolver(horseSchema),
+    defaultValues: {
+      name: "",
+      breed: "",
+      color: "",
+      gender: "",
+      status: "Ativo",
+      trainingStatus: "Potro",
+      vaccinations: standardVaccinations.map(name => ({ name, date: null, applied: false })),
+      customVaccinations: [],
+    },
+  });
 
   const filteredHorses = horses.filter(
     (horse) =>
@@ -84,6 +198,27 @@ const GestaoCavalos = () => {
         return <Badge className="bg-blue-500">Em treinamento</Badge>;
       case "Em descanso":
         return <Badge className="bg-amber-500">Em descanso</Badge>;
+      case "Vendido":
+        return <Badge className="bg-purple-500">Vendido</Badge>;
+      case "Morto":
+        return <Badge className="bg-red-500">Morto</Badge>;
+      case "Inseminado":
+        return <Badge className="bg-pink-500">Inseminado</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
+  const getTrainingStatusBadge = (status: string) => {
+    switch (status) {
+      case "Potro":
+        return <Badge className="bg-amber-300">Potro</Badge>;
+      case "Em doma":
+        return <Badge className="bg-blue-400">Em doma</Badge>;
+      case "Domado":
+        return <Badge className="bg-green-400">Domado</Badge>;
+      case "Pronto para uso":
+        return <Badge className="bg-indigo-500">Pronto para uso</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -121,6 +256,124 @@ const GestaoCavalos = () => {
     }
   };
 
+  const handleToggleVaccination = (vaccinationName: string, isCustom: boolean = false) => {
+    if (!selectedHorse) return;
+    
+    const updatedHorses = horses.map(horse => {
+      if (horse.id === selectedHorse.id) {
+        if (isCustom) {
+          const updatedCustomVaccinations = horse.customVaccinations.map(vacc => {
+            if (vacc.name === vaccinationName) {
+              return { ...vacc, applied: !vacc.applied, date: !vacc.applied ? new Date() : vacc.date };
+            }
+            return vacc;
+          });
+          return { ...horse, customVaccinations: updatedCustomVaccinations };
+        } else {
+          const updatedVaccinations = horse.vaccinations.map(vacc => {
+            if (vacc.name === vaccinationName) {
+              return { ...vacc, applied: !vacc.applied, date: !vacc.applied ? new Date() : vacc.date };
+            }
+            return vacc;
+          });
+          return { ...horse, vaccinations: updatedVaccinations };
+        }
+      }
+      return horse;
+    });
+    
+    setHorses(updatedHorses);
+    
+    // Update selected horse
+    const updatedHorse = updatedHorses.find(horse => horse.id === selectedHorse.id);
+    if (updatedHorse) {
+      setSelectedHorse(updatedHorse);
+    }
+    
+    toast({
+      title: "Vacinação atualizada",
+      description: "O status da vacinação foi atualizado com sucesso.",
+    });
+  };
+
+  const handleAddCustomVaccine = () => {
+    if (!selectedHorse || !newVaccineName.trim()) return;
+    
+    // Check if vaccine already exists
+    const alreadyExists = selectedHorse.vaccinations.some(v => v.name.toLowerCase() === newVaccineName.toLowerCase()) || 
+                          selectedHorse.customVaccinations.some(v => v.name.toLowerCase() === newVaccineName.toLowerCase());
+    
+    if (alreadyExists) {
+      toast({
+        title: "Erro",
+        description: "Esta vacina já existe na lista.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updatedHorses = horses.map(horse => {
+      if (horse.id === selectedHorse.id) {
+        return { 
+          ...horse, 
+          customVaccinations: [
+            ...horse.customVaccinations,
+            { name: newVaccineName, date: null, applied: false }
+          ]
+        };
+      }
+      return horse;
+    });
+    
+    setHorses(updatedHorses);
+    
+    // Update selected horse
+    const updatedHorse = updatedHorses.find(horse => horse.id === selectedHorse.id);
+    if (updatedHorse) {
+      setSelectedHorse(updatedHorse);
+    }
+    
+    toast({
+      title: "Vacina adicionada",
+      description: `A vacina ${newVaccineName} foi adicionada com sucesso.`
+    });
+    
+    setNewVaccineName("");
+  };
+
+  const onSubmit = (values: z.infer<typeof horseSchema>) => {
+    const newHorse = {
+      id: `HC-${Math.floor(Math.random() * 900) + 100}`,
+      name: values.name,
+      age: new Date().getFullYear() - (values.birthDate ? values.birthDate.getFullYear() : new Date().getFullYear()),
+      breed: values.breed,
+      color: values.color,
+      gender: values.gender,
+      status: values.status,
+      trainingStatus: values.trainingStatus,
+      sire: values.sire || "Não informado",
+      dam: values.dam || "Não informado",
+      birthDate: values.birthDate || new Date(),
+      sireImage: "",
+      damImage: "",
+      vaccinations: standardVaccinations.map(name => ({ 
+        name, 
+        date: null, 
+        applied: false 
+      })),
+      customVaccinations: [],
+    };
+
+    setHorses([...horses, newHorse]);
+    setIsAddHorseDialogOpen(false);
+    form.reset();
+    
+    toast({
+      title: "Cavalo adicionado",
+      description: `${newHorse.name} foi adicionado com sucesso.`
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -134,7 +387,7 @@ const GestaoCavalos = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total de Cavalos</p>
-                <h3 className="text-4xl font-bold mt-1">8</h3>
+                <h3 className="text-4xl font-bold mt-1">{horses.length}</h3>
                 <div className="flex items-center mt-2 text-sm text-green-500">
                   <ArrowUp size={14} className="mr-1" />
                   <span>1.2% último mês</span>
@@ -149,9 +402,11 @@ const GestaoCavalos = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Fêmeas</p>
-                <h3 className="text-4xl font-bold mt-1">5</h3>
+                <h3 className="text-4xl font-bold mt-1">
+                  {horses.filter(h => h.gender === "Fêmea").length}
+                </h3>
                 <div className="flex items-center mt-2 text-sm text-gray-500">
-                  <span>62.5% do total</span>
+                  <span>{Math.round((horses.filter(h => h.gender === "Fêmea").length / horses.length) * 100)}% do total</span>
                 </div>
               </div>
             </div>
@@ -163,10 +418,12 @@ const GestaoCavalos = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Machos</p>
-                <h3 className="text-4xl font-bold mt-1">3</h3>
+                <h3 className="text-4xl font-bold mt-1">
+                  {horses.filter(h => h.gender === "Macho").length}
+                </h3>
                 <div className="flex items-center mt-2 text-sm text-red-500">
                   <ArrowDown size={14} className="mr-1" />
-                  <span>37.5% do total</span>
+                  <span>{Math.round((horses.filter(h => h.gender === "Macho").length / horses.length) * 100)}% do total</span>
                 </div>
               </div>
             </div>
@@ -189,7 +446,10 @@ const GestaoCavalos = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button className="bg-farm hover:bg-farm-dark">
+              <Button 
+                className="bg-farm hover:bg-farm-dark"
+                onClick={() => setIsAddHorseDialogOpen(true)}
+              >
                 <Plus size={16} className="mr-2" />
                 Adicionar
               </Button>
@@ -207,6 +467,7 @@ const GestaoCavalos = () => {
                 <TableHead>Cor</TableHead>
                 <TableHead>Gênero</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Estado</TableHead>
                 <TableHead>Ação</TableHead>
               </TableRow>
             </TableHeader>
@@ -220,6 +481,7 @@ const GestaoCavalos = () => {
                   <TableCell>{horse.color}</TableCell>
                   <TableCell>{horse.gender}</TableCell>
                   <TableCell>{getStatusBadge(horse.status)}</TableCell>
+                  <TableCell>{getTrainingStatusBadge(horse.trainingStatus)}</TableCell>
                   <TableCell>
                     <Button 
                       variant="outline" 
@@ -248,9 +510,10 @@ const GestaoCavalos = () => {
               </DialogHeader>
 
               <Tabs defaultValue="info">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="info">Informações</TabsTrigger>
                   <TabsTrigger value="lineage">Linhagem Genética</TabsTrigger>
+                  <TabsTrigger value="health">Saúde</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4 pt-4">
@@ -281,7 +544,11 @@ const GestaoCavalos = () => {
                     </div>
                     <div>
                       <Label>Status</Label>
-                      <p className="text-sm mt-1">{selectedHorse.status}</p>
+                      <p className="text-sm mt-1">{getStatusBadge(selectedHorse.status)}</p>
+                    </div>
+                    <div>
+                      <Label>Estado de Treinamento</Label>
+                      <p className="text-sm mt-1">{getTrainingStatusBadge(selectedHorse.trainingStatus)}</p>
                     </div>
                   </div>
                 </TabsContent>
@@ -395,6 +662,94 @@ const GestaoCavalos = () => {
                     </Card>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="health" className="space-y-4 pt-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Vacinas</CardTitle>
+                      <CardDescription>Histórico de vacinação do animal</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedHorse.vaccinations.map((vacc) => (
+                            <div key={vacc.name} className="flex items-center justify-between p-3 border rounded-md">
+                              <div className="flex items-center space-x-3">
+                                <Syringe className={vacc.applied ? "text-green-500" : "text-gray-400"} size={18} />
+                                <div>
+                                  <p className="font-medium">{vacc.name}</p>
+                                  {vacc.date && (
+                                    <p className="text-xs text-gray-500">
+                                      Aplicada em: {format(vacc.date, "dd/MM/yyyy", { locale: ptBR })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <Button 
+                                variant={vacc.applied ? "outline" : "default"}
+                                size="sm"
+                                onClick={() => handleToggleVaccination(vacc.name)}
+                              >
+                                {vacc.applied ? "Aplicada" : "Marcar como aplicada"}
+                                {vacc.applied && <Check className="ml-2 h-4 w-4" />}
+                              </Button>
+                            </div>
+                          ))}
+
+                          {selectedHorse.customVaccinations.length > 0 && (
+                            <div className="md:col-span-2 mt-4">
+                              <h4 className="text-sm font-semibold mb-2">Outras vacinas</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {selectedHorse.customVaccinations.map((vacc) => (
+                                  <div key={vacc.name} className="flex items-center justify-between p-3 border rounded-md">
+                                    <div className="flex items-center space-x-3">
+                                      <Syringe className={vacc.applied ? "text-green-500" : "text-gray-400"} size={18} />
+                                      <div>
+                                        <p className="font-medium">{vacc.name}</p>
+                                        {vacc.date && (
+                                          <p className="text-xs text-gray-500">
+                                            Aplicada em: {format(vacc.date, "dd/MM/yyyy", { locale: ptBR })}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Button 
+                                      variant={vacc.applied ? "outline" : "default"}
+                                      size="sm"
+                                      onClick={() => handleToggleVaccination(vacc.name, true)}
+                                    >
+                                      {vacc.applied ? "Aplicada" : "Marcar como aplicada"}
+                                      {vacc.applied && <Check className="ml-2 h-4 w-4" />}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="border-t pt-4">
+                          <Label htmlFor="new-vaccine" className="block mb-2">Adicionar nova vacina</Label>
+                          <div className="flex space-x-2">
+                            <Input 
+                              id="new-vaccine" 
+                              placeholder="Nome da vacina" 
+                              value={newVaccineName}
+                              onChange={(e) => setNewVaccineName(e.target.value)}
+                            />
+                            <Button 
+                              variant="outline" 
+                              onClick={handleAddCustomVaccine} 
+                              disabled={!newVaccineName.trim()}
+                            >
+                              Adicionar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </Tabs>
 
               <DialogFooter>
@@ -407,6 +762,170 @@ const GestaoCavalos = () => {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddHorseDialogOpen} onOpenChange={setIsAddHorseDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Cavalo</DialogTitle>
+            <DialogDescription>
+              Preencha os detalhes do novo cavalo
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do cavalo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="breed"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Raça</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a raça" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Quarto de Milha">Quarto de Milha</SelectItem>
+                          <SelectItem value="Mangalarga">Mangalarga</SelectItem>
+                          <SelectItem value="Crioulo">Crioulo</SelectItem>
+                          <SelectItem value="Árabe">Árabe</SelectItem>
+                          <SelectItem value="Puro Sangue Inglês">Puro Sangue Inglês</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cor</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a cor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Alazão">Alazão</SelectItem>
+                          <SelectItem value="Preto">Preto</SelectItem>
+                          <SelectItem value="Baio">Baio</SelectItem>
+                          <SelectItem value="Tordilho">Tordilho</SelectItem>
+                          <SelectItem value="Ruano">Ruano</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Gênero</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Macho" id="gender-male" />
+                          <Label htmlFor="gender-male">Macho</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Fêmea" id="gender-female" />
+                          <Label htmlFor="gender-female">Fêmea</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Ativo">Ativo</SelectItem>
+                          <SelectItem value="Em treinamento">Em treinamento</SelectItem>
+                          <SelectItem value="Em descanso">Em descanso</SelectItem>
+                          <SelectItem value="Vendido">Vendido</SelectItem>
+                          <SelectItem value="Morto">Morto</SelectItem>
+                          <SelectItem value="Inseminado">Inseminado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="trainingStatus"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado de Treinamento</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o estado" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Potro">Potro</SelectItem>
+                          <SelectItem value="Em doma">Em doma</SelectItem>
+                          <SelectItem value="Domado">Domado</SelectItem>
+                          <SelectItem value="Pronto para uso">Pronto para uso</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <DialogFooter>
+                <Button type="submit">Salvar Cavalo</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
