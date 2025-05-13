@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ArrowDown, ArrowUp, Search, Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AddCattleForm } from "@/components/cattle/AddCattleForm";
 import { toast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Sample cattle data
 const initialCattle = [
@@ -259,14 +259,17 @@ const GestaoGado = () => {
 
       {/* Add Cattle Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-farm">Adicionar Novo Animal</DialogTitle>
+            <DialogDescription>Preencha os dados do novo animal</DialogDescription>
           </DialogHeader>
-          <AddCattleForm 
-            onSuccess={handleAddCattleSuccess}
-            onCancel={() => setIsAddDialogOpen(false)}
-          />
+          <ScrollArea className="h-[60vh] pr-4">
+            <AddCattleForm 
+              onSuccess={handleAddCattleSuccess}
+              onCancel={() => setIsAddDialogOpen(false)}
+            />
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
@@ -275,75 +278,81 @@ const GestaoGado = () => {
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-farm">Detalhes do Animal</DialogTitle>
+            <DialogDescription>Informações detalhadas do animal</DialogDescription>
           </DialogHeader>
-          {currentCattle && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">ID</p>
-                  <p>{currentCattle.id}</p>
+          <ScrollArea className="h-[50vh] pr-4">
+            {currentCattle && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">ID</p>
+                    <p>{currentCattle.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Nome</p>
+                    <p>{currentCattle.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Raça</p>
+                    <p>{currentCattle.type}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Pelagem</p>
+                    <p>{currentCattle.coatColor || "Não especificada"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Idade</p>
+                    <p>{currentCattle.age} anos</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Época de Nascimento</p>
+                    <p>{currentCattle.birthSeason || "Não especificada"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Peso</p>
+                    <p>{currentCattle.weight} kg</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Gênero</p>
+                    <p>{currentCattle.gender}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <p>{currentCattle.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Última Verificação</p>
+                    <p>{currentCattle.lastCheck.toLocaleDateString()}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Nome</p>
-                  <p>{currentCattle.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Raça</p>
-                  <p>{currentCattle.type}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Pelagem</p>
-                  <p>{currentCattle.coatColor || "Não especificada"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Idade</p>
-                  <p>{currentCattle.age} anos</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Época de Nascimento</p>
-                  <p>{currentCattle.birthSeason || "Não especificada"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Peso</p>
-                  <p>{currentCattle.weight} kg</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Gênero</p>
-                  <p>{currentCattle.gender}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p>{currentCattle.status}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Última Verificação</p>
-                  <p>{currentCattle.lastCheck.toLocaleDateString()}</p>
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                    Fechar
+                  </Button>
                 </div>
               </div>
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
-                  Fechar
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
       {/* Edit Cattle Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-farm">Editar Animal</DialogTitle>
+            <DialogDescription>Atualize os dados do animal</DialogDescription>
           </DialogHeader>
-          {currentCattle && (
-            <AddCattleForm 
-              onSuccess={() => handleEditSuccess(currentCattle)}
-              onCancel={() => setIsEditDialogOpen(false)}
-              initialData={currentCattle}
-              isEditing={true}
-            />
-          )}
+          <ScrollArea className="h-[60vh] pr-4">
+            {currentCattle && (
+              <AddCattleForm 
+                onSuccess={() => handleEditSuccess(currentCattle)}
+                onCancel={() => setIsEditDialogOpen(false)}
+                initialData={currentCattle}
+                isEditing={true}
+              />
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
