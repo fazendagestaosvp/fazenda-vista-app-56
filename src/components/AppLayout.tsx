@@ -15,12 +15,12 @@ export const AppLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <AppSidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
       {/* Main Content */}
       <div className="lg:pl-64 transition-all duration-300">
-        <header className="bg-white border-b sticky top-0 z-30">
+        <header className="bg-white/90 backdrop-blur-sm border-b sticky top-0 z-30">
           <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center space-x-2">
               <Button 
@@ -39,7 +39,7 @@ export const AppLayout = () => {
                 <Input
                   type="search"
                   placeholder="Buscar..."
-                  className="pl-10 w-64 bg-gray-50"
+                  className="pl-10 w-64 bg-gray-50/90"
                 />
               </div>
               
@@ -61,9 +61,11 @@ export const AppLayout = () => {
         </header>
         
         <main className="p-6">
-          <Outlet />
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-sm">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
   );
-};
+}
