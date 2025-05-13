@@ -4,6 +4,13 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus } from "lucid
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 const mockEvents = [
   { id: "1", title: "Vacinação do Rebanho", date: new Date(2025, 4, 10), type: "health" },
@@ -39,6 +46,16 @@ const eventTypeLabels = {
 const CalendarioPage = () => {
   const [date, setDate] = useState<Date>(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
+  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  const form = useForm({
+    defaultValues: {
+      title: "",
+      type: "health" as Event["type"],
+      date: selectedDay || new Date()
+    }
+  });
   
   const handleMonthChange = (increment: number) => {
     const newDate = new Date(date);
@@ -48,7 +65,7 @@ const CalendarioPage = () => {
 
   // Filter events for selected day
   const selectedDayEvents = selectedDay 
-    ? mockEvents.filter(event => 
+    ? events.filter(event => 
         event.date.getDate() === selectedDay.getDate() &&
         event.date.getMonth() === selectedDay.getMonth() &&
         event.date.getFullYear() === selectedDay.getFullYear()
@@ -57,11 +74,34 @@ const CalendarioPage = () => {
   
   // Function to check if a day has events
   const hasDayEvent = (day: Date) => {
-    return mockEvents.some(event => 
+    return events.some(event => 
       event.date.getDate() === day.getDate() &&
       event.date.getMonth() === day.getMonth() &&
       event.date.getFullYear() === day.getFullYear()
     );
+  };
+
+  const handleAddEvent = (data: { title: string; type: Event["type"]; date: Date }) => {
+    const newEvent: Event = {
+      id: `${Date.now()}`,
+      title: data.title,
+      date: selectedDay || new Date(),
+      type: data.type
+    };
+    
+    setEvents([...events, newEvent]);
+    setIsDialogOpen(false);
+    form.reset();
+    
+    toast({
+      title: "Evento adicionado",
+      description: `${newEvent.title} foi adicionado ao calendário.`
+    });
+  };
+  
+  const openEventDialog = () => {
+    form.setValue("date", selectedDay || new Date());
+    setIsDialogOpen(true);
   };
 
   return (
@@ -95,31 +135,73 @@ const CalendarioPage = () => {
                 onSelect={setSelectedDay}
                 month={date}
                 onMonthChange={setDate}
-                className="rounded-md border"
-                components={{
-                  Day: ({ day, ...props }) => {
-                    const hasEvent = hasDayEvent(day);
-                    return (
-                      <div
-                        {...props}
-                        className={`relative ${props.className} ${
-                          hasEvent ? "font-bold" : ""
-                        }`}
-                      >
-                        {day.getDate()}
-                        {hasEvent && (
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-farm-light rounded-full" />
-                        )}
-                      </div>
-                    );
-                  },
+                className="rounded-md border pointer-events-auto"
+                modifiers={{
+                  hasEvent: events.map(event => event.date),
+                }}
+                modifiersClassNames={{
+                  hasEvent: "font-bold",
                 }}
               />
               <div className="mt-6 flex justify-center">
-                <Button className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2">
-                  <Plus size={16} />
-                  Adicionar Evento
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2"
+                      onClick={openEventDialog}
+                    >
+                      <Plus size={16} />
+                      Adicionar Evento
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Adicionar Novo Evento</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={form.handleSubmit(handleAddEvent)}>
+                      <div className="grid gap-4 py-4">
+                        <FormItem>
+                          <FormLabel>Título</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...form.register("title", { required: true })}
+                              placeholder="Nome do evento"
+                            />
+                          </FormControl>
+                        </FormItem>
+                        <FormItem>
+                          <FormLabel>Data</FormLabel>
+                          <div className="text-sm text-gray-500">
+                            {selectedDay ? format(selectedDay, "dd/MM/yyyy") : "Selecione uma data no calendário"}
+                          </div>
+                        </FormItem>
+                        <FormItem>
+                          <FormLabel>Tipo</FormLabel>
+                          <Select
+                            defaultValue="health"
+                            onValueChange={(value) => form.setValue("type", value as Event["type"])}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="health">Saúde Animal</SelectItem>
+                              <SelectItem value="maintenance">Manutenção</SelectItem>
+                              <SelectItem value="supply">Suprimentos</SelectItem>
+                              <SelectItem value="harvest">Colheita</SelectItem>
+                              <SelectItem value="other">Outros</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" className="bg-farm hover:bg-farm-dark">
+                          Salvar Evento
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -171,7 +253,7 @@ const CalendarioPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockEvents
+                {events
                   .sort((a, b) => a.date.getTime() - b.date.getTime())
                   .slice(0, 3)
                   .map((event) => (
