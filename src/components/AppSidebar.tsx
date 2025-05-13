@@ -48,16 +48,23 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
       )}
     >
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
+        <div className="p-4 border-b relative overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center z-0" 
+            style={{ 
+              backgroundImage: "url('/lovable-uploads/35fbe54c-c706-4a1e-bd99-33c1b3f3a030.png')",
+              filter: "blur(3px) brightness(0.9)",
+            }}
+          ></div>
+          <div className="flex items-center justify-between relative z-10">
             <div>
-              <div className="farm-logo">FazendaPlus</div>
-              <div className="farm-subtitle">Gestão Premium</div>
+              <div className="farm-logo text-white">FazendaPlus</div>
+              <div className="farm-subtitle text-white/80">Gestão Premium</div>
             </div>
             <Button 
               variant="ghost" 
               size="icon"
-              className="lg:hidden"
+              className="lg:hidden text-white"
               onClick={toggleSidebar}
             >
               <X size={20} />
