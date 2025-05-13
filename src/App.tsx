@@ -2,7 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuthContext";
 import { Toaster } from "@/components/ui/toaster";
-import AppLayout from "./components/AppLayout";
+import { AppLayout } from "./components/AppLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Animais from "./pages/Animais";
