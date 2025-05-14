@@ -16,6 +16,7 @@ import Documentos from "./pages/Documentos";
 import GestaoCavalos from "./pages/GestaoCavalos";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import AdminPromote from "./pages/AdminPromote";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -43,6 +44,14 @@ function App() {
             <Route path="reproducao" element={<Reproducao />} />
             <Route path="historico-saude" element={<HistoricoSaude />} />
             <Route path="documentos" element={<Documentos />} />
+            <Route 
+              path="admin/promote" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminPromote />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
