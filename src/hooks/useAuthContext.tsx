@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   userRole: "admin" | "user" | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Login com email e senha
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, onSuccess?: () => void) => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
@@ -99,6 +99,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Login bem-sucedido",
         description: "Bem-vindo ao FazendaPlus!"
       });
+      
+      // Execute o callback de navegação se fornecido
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",

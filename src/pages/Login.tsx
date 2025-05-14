@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn(email, password);
+    await signIn(email, password, () => navigate('/dashboard'));
   };
 
   const validateRegistration = (): boolean => {
