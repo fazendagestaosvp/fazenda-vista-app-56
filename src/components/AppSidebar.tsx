@@ -1,4 +1,3 @@
-
 import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, X, Users, Activity, Baby } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -82,6 +81,11 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
               isActive={link.to === '/' ? location.pathname === '/' : location.pathname.startsWith(link.to)}
             />
           ))}
+        </div>
+        
+        {/* Desenvolvido por JPDev */}
+        <div className="p-3 border-t">
+          <p className="text-xs text-gray-500">Desenvolvido por JPDev.</p>
         </div>
       </div>
     </div>
