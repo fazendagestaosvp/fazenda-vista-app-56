@@ -111,6 +111,7 @@ export function ReproducaoTable({
                     size="sm"
                     onClick={() => onView(reproducao)}
                     title="Ver detalhes"
+                    type="button"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -121,6 +122,7 @@ export function ReproducaoTable({
                         size="sm"
                         onClick={() => onUltrassom(reproducao)}
                         title="Registrar ultrassom"
+                        type="button"
                       >
                         <Stethoscope className="h-4 w-4" />
                       </Button>
@@ -129,6 +131,7 @@ export function ReproducaoTable({
                         size="sm"
                         onClick={() => onEdit(reproducao)}
                         title="Editar registro"
+                        type="button"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -137,6 +140,7 @@ export function ReproducaoTable({
                         size="sm"
                         onClick={() => onDelete(reproducao.id)}
                         title="Excluir registro"
+                        type="button"
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
