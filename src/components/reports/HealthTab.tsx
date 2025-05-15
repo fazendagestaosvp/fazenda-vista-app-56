@@ -74,11 +74,13 @@ const HealthTab = () => {
           <div className="grid gap-6 md:grid-cols-2">
             <AnimalReportCard 
               title="Atendimentos Veterinários" 
-              data={veterinaryServicesData} 
+              data={veterinaryServicesData}
+              type="saude"
             />
             <AnimalReportCard 
               title="Histórico de Medicamentos" 
-              data={medicineHistoryData} 
+              data={medicineHistoryData}
+              type="saude" 
             />
           </div>
         </TabsContent>

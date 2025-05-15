@@ -57,11 +57,13 @@ const ProductionTab = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <AnimalReportCard 
           title="Produção de Leite" 
-          data={milkProductionData} 
+          data={milkProductionData}
+          type="producao"
         />
         <AnimalReportCard 
           title="Desenvolvimento do Rebanho" 
-          data={cattleWeightData} 
+          data={cattleWeightData}
+          type="producao"
         />
       </div>
     </div>

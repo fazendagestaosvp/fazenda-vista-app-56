@@ -5,6 +5,9 @@ import AnimalDistributionChart from "./charts/AnimalDistributionChart";
 import WeightEvolutionChart from "./charts/WeightEvolutionChart";
 import AnimalReportCard from "./AnimalReportCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { animalData } from "./ReportsData";
 
 const bovineReportData = [
   { label: "Quantidade Total", value: "25 animais" },
@@ -22,6 +25,7 @@ const equineReportData = [
 
 const AnimalsTab = () => {
   const [period, setPeriod] = useState<"mensal" | "trimestral" | "semestral">("mensal");
+  const [showDistributionDetails, setShowDistributionDetails] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -62,7 +66,16 @@ const AnimalsTab = () => {
         <TabsContent value="graficos" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <h3 className="text-lg font-medium">Distribuição por Categoria</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Distribuição por Categoria</h3>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowDistributionDetails(true)}
+                >
+                  Ver detalhes
+                </Button>
+              </div>
               <AnimalDistributionChart />
             </div>
             <div className="space-y-2">
@@ -98,7 +111,8 @@ const AnimalsTab = () => {
           <div className="grid gap-6 md:grid-cols-2">
             <AnimalReportCard 
               title="Relatório de Bovinos" 
-              data={bovineReportData} 
+              data={bovineReportData}
+              type="animais"
             />
             <Card>
               <CardHeader>
@@ -151,10 +165,56 @@ const AnimalsTab = () => {
         <TabsContent value="equinos" className="space-y-6">
           <AnimalReportCard 
             title="Relatório de Equinos" 
-            data={equineReportData} 
+            data={equineReportData}
+            type="animais"
           />
         </TabsContent>
       </Tabs>
+
+      {/* Animal Distribution Details Dialog */}
+      <Dialog open={showDistributionDetails} onOpenChange={setShowDistributionDetails}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes de Distribuição Animal</DialogTitle>
+            <DialogDescription>
+              Detalhamento completo da distribuição por categorias
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Categoria</th>
+                  <th className="text-left py-2">Quantidade</th>
+                  <th className="text-left py-2">Percentual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {animalData.map((animal, index) => {
+                  const total = animalData.reduce((sum, a) => sum + a.quantidade, 0);
+                  const percentage = ((animal.quantidade / total) * 100).toFixed(1);
+                  
+                  return (
+                    <tr key={index} className="border-b">
+                      <td className="py-2">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: animal.cor }}
+                          />
+                          {animal.categoria}
+                        </div>
+                      </td>
+                      <td className="py-2">{animal.quantidade}</td>
+                      <td className="py-2">{percentage}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
