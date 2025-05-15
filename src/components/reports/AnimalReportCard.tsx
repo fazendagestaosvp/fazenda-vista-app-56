@@ -13,22 +13,25 @@ interface AnimalReportCardProps {
 
 const AnimalReportCard = ({ title, data }: AnimalReportCardProps) => {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-muted/50">
         <CardTitle className="text-farm">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="p-0">
+        <div className="divide-y">
           {data.map((item, index) => (
-            <div key={index} className="flex justify-between items-center">
-              <span className="text-gray-500">{item.label}</span>
+            <div 
+              key={index} 
+              className={`flex justify-between items-center p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-muted/20'}`}
+            >
+              <span className="text-gray-700 font-medium">{item.label}</span>
               <span className="font-medium">{item.value}</span>
             </div>
           ))}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button variant="ghost" className="w-full flex items-center justify-center gap-2">
+      <CardFooter className="bg-muted/30 border-t">
+        <Button variant="ghost" className="w-full flex items-center justify-center gap-2 text-farm hover:text-farm-dark">
           Ver relatório completo <ArrowRight size={16} />
         </Button>
       </CardFooter>
