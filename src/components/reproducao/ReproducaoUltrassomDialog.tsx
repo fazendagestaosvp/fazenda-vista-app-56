@@ -43,12 +43,8 @@ export function ReproducaoUltrassomDialog({
   onSuccess,
 }: ReproducaoUltrassomDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  if (!reproducao) return null;
-
-  // Determinar o número deste ultrassom
-  const numeroUltrassom = reproducao.ultrassons.length + 1;
-
+  
+  // Initialize form regardless of reproducao value
   const form = useForm<UltrassomFormValues>({
     resolver: zodResolver(ultrassomSchema),
     defaultValues: {
@@ -56,6 +52,12 @@ export function ReproducaoUltrassomDialog({
       observacoes: "",
     },
   });
+
+  // Return early if reproducao is null, but AFTER all hooks
+  if (!reproducao) return null;
+
+  // Determinar o número deste ultrassom
+  const numeroUltrassom = reproducao.ultrassons.length + 1;
 
   const onSubmit = (data: UltrassomFormValues) => {
     setIsSubmitting(true);
