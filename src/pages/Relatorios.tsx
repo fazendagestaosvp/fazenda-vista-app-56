@@ -1,4 +1,5 @@
 
+import React, { useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnimalsTab from "@/components/reports/AnimalsTab";
 import HealthTab from "@/components/reports/HealthTab";
@@ -6,11 +7,10 @@ import ProductionTab from "@/components/reports/ProductionTab";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useCallback } from "react";
 import { exportToPDF } from "@/lib/utils";
 
 const Relatorios = () => {
-  const [activeTab, setActiveTab] = React.useState("animais");
+  const [activeTab, setActiveTab] = useState("animais");
   
   const handleExportData = useCallback(() => {
     exportToPDF(activeTab);
