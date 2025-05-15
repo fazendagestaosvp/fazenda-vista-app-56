@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,88 +10,32 @@ import { Search, Plus, Calendar, Settings, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useHealthHistory } from "@/hooks/use-health-history";
+import { HealthHistoryAddDialog } from "@/components/health/HealthHistoryAddDialog";
 
-// Sample health records
-const initialHealthRecords = [
-  {
-    id: "HR-101",
-    animalId: "BG-101",
-    animalName: "Estrela",
-    animalType: "Gado",
-    type: "Vacinação",
-    procedure: "Febre Aftosa",
-    date: new Date(2025, 4, 1),
-    veterinarian: "Dr. Carlos Silva",
-    notes: "Aplicação de rotina, sem complicações.",
-    status: "Concluído"
-  },
-  {
-    id: "HR-102",
-    animalId: "HC-101",
-    animalName: "Ventania",
-    animalType: "Cavalo",
-    type: "Exame",
-    procedure: "Exame de Sangue",
-    date: new Date(2025, 3, 25),
-    veterinarian: "Dra. Ana Oliveira",
-    notes: "Resultados normais.",
-    status: "Concluído"
-  },
-  {
-    id: "HR-103",
-    animalId: "BG-103",
-    animalName: "Luna",
-    animalType: "Gado",
-    type: "Tratamento",
-    procedure: "Antibióticos",
-    date: new Date(2025, 3, 28),
-    veterinarian: "Dr. Carlos Silva",
-    notes: "Infecção leve. Tratar por 7 dias.",
-    status: "Em andamento"
-  },
-  {
-    id: "HR-104",
-    animalId: "HC-103",
-    animalName: "Lua Cheia",
-    animalType: "Cavalo",
-    type: "Vacinação",
-    procedure: "Tétano",
-    date: new Date(2025, 4, 5),
-    veterinarian: "Dra. Ana Oliveira",
-    notes: "Vacinação anual.",
-    status: "Agendado"
-  },
-  {
-    id: "HR-105",
-    animalId: "BG-102",
-    animalName: "Trovão",
-    animalType: "Gado",
-    type: "Consulta",
-    procedure: "Avaliação Geral",
-    date: new Date(2025, 4, 2),
-    veterinarian: "Dr. Carlos Silva",
-    notes: "Animal em boas condições.",
-    status: "Concluído"
-  },
-];
+
 
 const HistoricoSaude = () => {
-  const [healthRecords, setHealthRecords] = useState(initialHealthRecords);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [animalTypeFilter, setAnimalTypeFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  const filteredRecords = healthRecords.filter((record) => {
-    const matchesSearch =
-      record.animalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.animalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.procedure.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesAnimalType = animalTypeFilter === "all" || record.animalType === animalTypeFilter;
-    const matchesStatus = statusFilter === "all" || record.status === statusFilter;
-    
-    return matchesSearch && matchesAnimalType && matchesStatus;
-  });
+  const {
+    filteredRecords,
+    searchTerm,
+    setSearchTerm,
+    animalTypeFilter,
+    setAnimalTypeFilter,
+    statusFilter,
+    setStatusFilter,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    handleAddSuccess,
+    vaccineCount,
+    examCount,
+    treatmentCount,
+    consultationCount,
+    completedCount,
+    inProgressCount,
+    scheduledCount,
+    upcomingEvents
+  } = useHealthHistory();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -120,24 +64,6 @@ const HistoricoSaude = () => {
         return <Badge>{type}</Badge>;
     }
   };
-
-  // Count health records by type
-  const vaccineCount = healthRecords.filter(record => record.type === "Vacinação").length;
-  const examCount = healthRecords.filter(record => record.type === "Exame").length;
-  const treatmentCount = healthRecords.filter(record => record.type === "Tratamento").length;
-  const consultationCount = healthRecords.filter(record => record.type === "Consulta").length;
-
-  // Count health records by status
-  const completedCount = healthRecords.filter(record => record.status === "Concluído").length;
-  const inProgressCount = healthRecords.filter(record => record.status === "Em andamento").length;
-  const scheduledCount = healthRecords.filter(record => record.status === "Agendado").length;
-
-  // Calculate upcoming health events
-  const today = new Date();
-  const upcomingEvents = healthRecords
-    .filter(record => record.date > today)
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
-    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -237,7 +163,10 @@ const HistoricoSaude = () => {
                     </SelectContent>
                   </Select>
                   
-                  <Button className="bg-farm hover:bg-farm-dark">
+                  <Button 
+                    className="bg-farm hover:bg-farm-dark"
+                    onClick={() => setIsAddDialogOpen(true)}
+                  >
                     <Plus size={16} className="mr-2" />
                     Adicionar
                   </Button>
@@ -408,6 +337,14 @@ const HistoricoSaude = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Diálogo para adicionar novo registro de saúde */}
+      <HealthHistoryAddDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSuccess={handleAddSuccess}
+        animalType={animalTypeFilter !== "all" ? animalTypeFilter : undefined}
+      />
     </div>
   );
 };
