@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,8 +67,19 @@ const HistoricoSaude = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-farm">Histórico de Saúde</h1>
-        <p className="text-gray-500">Acompanhe a saúde dos seus animais</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-farm">Histórico de Saúde</h1>
+            <p className="text-gray-500">Acompanhe a saúde dos seus animais</p>
+          </div>
+          <Button 
+            className="bg-farm hover:bg-farm-dark"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
+            <Plus size={16} className="mr-2" />
+            Adicionar
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -162,14 +172,6 @@ const HistoricoSaude = () => {
                       <SelectItem value="Agendado">Agendado</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  <Button 
-                    className="bg-farm hover:bg-farm-dark"
-                    onClick={() => setIsAddDialogOpen(true)}
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Adicionar
-                  </Button>
                 </div>
               </div>
             </CardHeader>
