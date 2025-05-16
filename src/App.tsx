@@ -9,6 +9,9 @@ import Animais from "./pages/Animais";
 import GestaoGado from "./pages/GestaoGado";
 import Calendario from "./pages/Calendario";
 import Configuracoes from "./pages/Configuracoes";
+import UserProfile from "./pages/UserProfile";
+import SecuritySettings from "./pages/SecuritySettings";
+import NotificationSettings from "./pages/NotificationSettings";
 import Relatorios from "./pages/Relatorios";
 import Reproducao from "./pages/Reproducao";
 import HistoricoSaude from "./pages/HistoricoSaude";
@@ -40,6 +43,9 @@ function App() {
             <Route path="gestao-cavalos" element={<GestaoCavalos />} />
             <Route path="calendario" element={<Calendario />} />
             <Route path="configuracoes" element={<Configuracoes />} />
+            <Route path="configuracoes/perfil" element={<UserProfile />} />
+            <Route path="configuracoes/seguranca" element={<SecuritySettings />} />
+            <Route path="configuracoes/notificacoes" element={<NotificationSettings />} />
             <Route path="relatorios" element={<Relatorios />} />
             <Route path="reproducao" element={<Reproducao />} />
             <Route path="historico-saude" element={<HistoricoSaude />} />

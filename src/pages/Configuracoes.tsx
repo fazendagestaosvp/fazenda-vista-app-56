@@ -2,11 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Shield } from "lucide-react";
 
 const Configuracoes = () => {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-6">
@@ -26,7 +27,12 @@ const Configuracoes = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">Editar Perfil</Button>
+            <Button 
+              className="w-full"
+              onClick={() => navigate("/configuracoes/perfil")}
+            >
+              Editar Perfil
+            </Button>
           </CardContent>
         </Card>
 
@@ -38,7 +44,12 @@ const Configuracoes = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">Alterar Senha</Button>
+            <Button 
+              className="w-full"
+              onClick={() => navigate("/configuracoes/seguranca")}
+            >
+              Alterar Senha
+            </Button>
           </CardContent>
         </Card>
 
@@ -50,7 +61,12 @@ const Configuracoes = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">Configurar Notificações</Button>
+            <Button 
+              className="w-full"
+              onClick={() => navigate("/configuracoes/notificacoes")}
+            >
+              Configurar Notificações
+            </Button>
           </CardContent>
         </Card>
 
