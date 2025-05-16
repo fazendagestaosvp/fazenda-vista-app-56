@@ -1,14 +1,25 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Menu, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 export const AppLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    // Verificar se há preferência salva no localStorage
+    const savedState = localStorage.getItem('sidebarState');
+    return savedState ? savedState === 'open' : true; // Padrão é aberto
+  });
+  
+  const location = useLocation();
+
+  useEffect(() => {
+    // Salvar estado no localStorage sempre que mudar
+    localStorage.setItem('sidebarState', isSidebarOpen ? 'open' : 'closed');
+  }, [isSidebarOpen]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -19,7 +30,10 @@ export const AppLayout = () => {
       <AppSidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
       {/* Main Content */}
-      <div className="lg:pl-64 transition-all duration-300">
+      <div className={cn(
+        "transition-all duration-300", 
+        isSidebarOpen ? "lg:pl-64" : "lg:pl-[60px]"
+      )}>
         <header className="bg-white/90 backdrop-blur-sm border-b sticky top-0 z-30">
           <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center space-x-2">
@@ -68,4 +82,7 @@ export const AppLayout = () => {
       </div>
     </div>
   );
-}
+};
+
+// Importar cn para poder usar a função
+import { cn } from "@/lib/utils";
