@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { HealthHistoryForm } from "./HealthHistoryForm";
@@ -33,8 +34,8 @@ export function HealthHistoryAddDialog({
             onCancel={() => onOpenChange(false)}
             initialData={animalType ? { 
               id: "",
-              animalId: "",
-              animalName: "",
+              animalId: "",  // Required field
+              animalName: "", // Required field
               animalType: animalType,
               type: "Vacinação",
               procedure: "",

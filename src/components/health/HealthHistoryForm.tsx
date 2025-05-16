@@ -1,3 +1,4 @@
+
 import React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -58,9 +59,18 @@ export function HealthHistoryForm({ onSuccess, onCancel, initialData }: HealthHi
 
   // Manipulador de envio
   const onSubmit = (values: FormValues) => {
+    // Ensure all required fields are present and not optional
     const newRecord: HealthRecord = {
       id: initialData?.id || `HR-${Math.floor(Math.random() * 1000)}`,
-      ...values,
+      animalId: values.animalId,
+      animalName: values.animalName,
+      animalType: values.animalType,
+      type: values.type,
+      procedure: values.procedure,
+      date: values.date,
+      veterinarian: values.veterinarian,
+      notes: values.notes || "",
+      status: values.status
     };
     
     onSuccess(newRecord);
