@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuthContext";
+import { AlertCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const Login = () => {
   // Estados para o formulário de login
@@ -22,13 +25,34 @@ const Login = () => {
   
   // Estado para mostrar erros de validação
   const [registerError, setRegisterError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { signIn, signUp, loading } = useAuth();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn(email, password, () => navigate('/dashboard'));
+    setLoginError(null);
+
+    try {
+      console.log("Tentando login com:", email);
+      await signIn(email, password, 
+        // Função de sucesso
+        () => {
+          console.log("Login bem-sucedido, redirecionando para dashboard");
+          navigate('/dashboard');
+        },
+        // Função de erro
+        (errorMessage: string) => {
+          console.error("Erro ao fazer login:", errorMessage);
+          setLoginError(errorMessage);
+        }
+      );
+    } catch (error: any) {
+      console.error("Erro capturado no componente Login:", error);
+      setLoginError(error.message || "Ocorreu um erro durante o login");
+    }
   };
 
   const validateRegistration = (): boolean => {
@@ -63,13 +87,28 @@ const Login = () => {
       return;
     }
     
-    await signUp(registerEmail, registerPassword, fullName);
-    
-    // Limpar os campos após o registro
-    setRegisterEmail("");
-    setRegisterPassword("");
-    setConfirmPassword("");
-    setFullName("");
+    try {
+      await signUp(registerEmail, registerPassword, fullName);
+      
+      // Limpar os campos após o registro
+      setRegisterEmail("");
+      setRegisterPassword("");
+      setConfirmPassword("");
+      setFullName("");
+
+      // Mudar para a aba de login automaticamente
+      const loginTab = document.querySelector('[data-state="inactive"][value="login"]');
+      if (loginTab instanceof HTMLButtonElement) {
+        loginTab.click();
+      }
+
+      toast({
+        title: "Cadastro realizado com sucesso",
+        description: "Por favor, faça login com suas novas credenciais",
+      });
+    } catch (error: any) {
+      setRegisterError(error.message || "Ocorreu um erro durante o cadastro");
+    }
   };
 
   return (
@@ -99,6 +138,12 @@ const Login = () => {
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
+                {loginError && (
+                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    <span>{loginError}</span>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
@@ -155,8 +200,9 @@ const Login = () => {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
                 {registerError && (
-                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200">
-                    {registerError}
+                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    <span>{registerError}</span>
                   </div>
                 )}
                 <div className="space-y-2">
@@ -212,6 +258,10 @@ const Login = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          <div className="mt-6 text-center text-sm text-gray-500">
+            <p>Primeiro acesso? Clique na aba "Cadastrar" para criar uma conta.</p>
+          </div>
         </CardContent>
       </Card>
     </div>

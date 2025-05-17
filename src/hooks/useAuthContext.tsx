@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   userRole: "admin" | "user" | "viewer" | null;
   loading: boolean;
-  signIn: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
+  signIn: (email: string, password: string, onSuccess?: () => void, onError?: (message: string) => void) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Configurar o listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Verificar se já existe uma sessão
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -61,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Função para buscar a função do usuário (admin, user ou viewer)
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log("Buscando função do usuário:", userId);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -72,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      console.log("Função do usuário encontrada:", data.role);
       setUserRole(data.role);
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);
@@ -79,23 +83,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Login com email e senha
-  const signIn = async (email: string, password: string, onSuccess?: () => void) => {
+  const signIn = async (email: string, password: string, onSuccess?: () => void, onError?: (message: string) => void) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("Tentando login para:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
+        console.error("Erro na autenticação:", error);
+        const errorMsg = error.message === "Invalid login credentials" 
+          ? "Credenciais inválidas. Verifique seu email e senha."
+          : error.message;
+          
         toast({
           title: "Erro ao fazer login",
-          description: error.message,
+          description: errorMsg,
           variant: "destructive"
         });
+        
+        if (onError) {
+          onError(errorMsg);
+        }
         return;
       }
 
+      console.log("Login bem-sucedido:", data.user?.email);
       toast({
         title: "Login bem-sucedido",
         description: "Bem-vindo ao FazendaPlus!"
@@ -106,11 +121,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         onSuccess();
       }
     } catch (error: any) {
+      console.error("Erro inesperado durante login:", error);
+      const errorMsg = "Ocorreu um erro durante o login: " + (error.message || "Erro desconhecido");
+      
       toast({
         title: "Erro ao fazer login",
-        description: error.message || "Ocorreu um erro durante o login",
+        description: errorMsg,
         variant: "destructive"
       });
+      
+      if (onError) {
+        onError(errorMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -120,7 +142,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({
+      console.log("Registrando novo usuário:", email);
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -131,24 +154,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        console.error("Erro no cadastro:", error);
+        const errorMsg = error.message === "User already registered" 
+          ? "Este email já está cadastrado. Tente fazer login."
+          : error.message;
+          
         toast({
           title: "Erro ao criar conta",
-          description: error.message,
+          description: errorMsg,
           variant: "destructive"
         });
-        return;
+        throw new Error(errorMsg);
       }
 
+      console.log("Cadastro realizado com sucesso:", data.user?.email);
       toast({
         title: "Cadastro realizado com sucesso",
         description: "Sua conta foi criada. Faça login para continuar."
       });
     } catch (error: any) {
+      console.error("Erro inesperado durante cadastro:", error);
       toast({
         title: "Erro ao criar conta",
         description: error.message || "Ocorreu um erro durante o cadastro",
         variant: "destructive"
       });
+      throw error;
     } finally {
       setLoading(false);
     }
