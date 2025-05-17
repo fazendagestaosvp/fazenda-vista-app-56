@@ -20,6 +20,8 @@ import GestaoCavalos from "./pages/GestaoCavalos";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import AdminPromote from "./pages/AdminPromote";
+import AdminPromoteViewer from "./pages/AdminPromoteViewer";
+import UserRoleManagement from "./pages/UserRoleManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -55,6 +57,22 @@ function App() {
               element={
                 <ProtectedRoute adminOnly={true}>
                   <AdminPromote />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="admin/promote-viewer" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminPromoteViewer />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="admin/users" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <UserRoleManagement />
                 </ProtectedRoute>
               } 
             />

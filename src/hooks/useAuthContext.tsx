@@ -7,12 +7,13 @@ import { useToast } from "@/components/ui/use-toast";
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  userRole: "admin" | "user" | null;
+  userRole: "admin" | "user" | "viewer" | null;
   loading: boolean;
   signIn: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
+  isViewer: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<"admin" | "user" | null>(null);
+  const [userRole, setUserRole] = useState<"admin" | "user" | "viewer" | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Função para buscar a função do usuário (admin ou user)
+  // Função para buscar a função do usuário (admin, user ou viewer)
   const fetchUserRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -172,6 +173,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Verificar se o usuário é administrador
   const isAdmin = () => userRole === "admin";
+  
+  // Verificar se o usuário é apenas visualizador
+  const isViewer = () => userRole === "viewer";
 
   return (
     <AuthContext.Provider
@@ -183,7 +187,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signIn,
         signUp,
         signOut,
-        isAdmin
+        isAdmin,
+        isViewer
       }}
     >
       {children}

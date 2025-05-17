@@ -6,10 +6,15 @@ import { useAuth } from "@/hooks/useAuthContext";
 interface ProtectedRouteProps {
   children: ReactNode;
   adminOnly?: boolean;
+  noViewers?: boolean;
 }
 
-const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
-  const { user, loading, isAdmin } = useAuth();
+const ProtectedRoute = ({ 
+  children, 
+  adminOnly = false, 
+  noViewers = false 
+}: ProtectedRouteProps) => {
+  const { user, loading, isAdmin, isViewer } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -28,6 +33,11 @@ const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) =>
 
   // Se a rota for apenas para admins e o usuário não for admin
   if (adminOnly && !isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // Se a rota não permitir visualizadores e o usuário for visualizador
+  if (noViewers && isViewer()) {
     return <Navigate to="/dashboard" replace />;
   }
 

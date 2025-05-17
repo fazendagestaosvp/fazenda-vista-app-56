@@ -115,9 +115,13 @@ export type Database = {
         Args: { email: string }
         Returns: undefined
       }
+      promote_to_viewer: {
+        Args: { email: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      user_role: "admin" | "user"
+      user_role: "admin" | "user" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -233,7 +237,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["admin", "user"],
+      user_role: ["admin", "user", "viewer"],
     },
   },
 } as const
