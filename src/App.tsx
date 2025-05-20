@@ -21,7 +21,9 @@ import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import AdminPromote from "./pages/AdminPromote";
 import AdminPromoteViewer from "./pages/AdminPromoteViewer";
+import AdminPromoteEditor from "./pages/AdminPromoteEditor";
 import UserRoleManagement from "./pages/UserRoleManagement";
+import UserAccessControl from "./pages/UserAccessControl";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -61,6 +63,14 @@ function App() {
               } 
             />
             <Route 
+              path="admin/promote-editor" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminPromoteEditor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="admin/promote-viewer" 
               element={
                 <ProtectedRoute adminOnly={true}>
@@ -73,6 +83,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly={true}>
                   <UserRoleManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="admin/access-control" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <UserAccessControl />
                 </ProtectedRoute>
               } 
             />

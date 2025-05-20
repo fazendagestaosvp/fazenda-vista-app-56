@@ -1,9 +1,10 @@
 
-import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby } from "lucide-react";
+import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UsersIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuthContext";
 
 type SidebarLinkProps = {
   icon: React.ElementType;
@@ -40,6 +41,7 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   const location = useLocation();
   const currentPath = location.pathname;
   const [hoverItem, setHoverItem] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
 
   const sidebarLinks = [
     { icon: LayoutDashboard, label: "Dashboard", to: "/" },
@@ -51,6 +53,11 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
     { icon: Calendar, label: "Calendário", to: "/calendario" },
     { icon: FileText, label: "Documentos", to: "/documentos" },
     { icon: Settings, label: "Configurações", to: "/configuracoes" },
+  ];
+  
+  // Links administrativos - somente visíveis para administradores
+  const adminLinks = [
+    { icon: UsersIcon, label: "Controle de Acesso", to: "/admin/access-control" }
   ];
 
   return (
@@ -112,6 +119,44 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
                 )}
               </div>
             ))}
+            
+            {/* Admin links - only visible for admins */}
+            {isAdmin() && (
+              <>
+                {isSidebarOpen && (
+                  <div className="pt-4 pb-2">
+                    <div className="px-3">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Administração
+                      </h3>
+                    </div>
+                  </div>
+                )}
+                
+                {adminLinks.map((link) => (
+                  <div 
+                    key={link.to}
+                    onMouseEnter={() => !isSidebarOpen && setHoverItem(link.to)}
+                    onMouseLeave={() => setHoverItem(null)}
+                    className="relative"
+                  >
+                    <SidebarLink
+                      icon={link.icon}
+                      label={link.label}
+                      to={link.to}
+                      isActive={currentPath.startsWith(link.to)}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                    {/* Tooltip for collapsed sidebar */}
+                    {!isSidebarOpen && hoverItem === link.to && (
+                      <div className="absolute top-0 left-full ml-2 z-50 px-3 py-1 bg-card text-foreground rounded-md shadow-md whitespace-nowrap">
+                        {link.label}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
           </nav>
         </div>
 

@@ -194,6 +194,10 @@ export type Database = {
         Args: { email: string }
         Returns: undefined
       }
+      promote_to_editor: {
+        Args: { email: string }
+        Returns: undefined
+      }
       promote_to_viewer: {
         Args: { email: string }
         Returns: undefined

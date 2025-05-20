@@ -24,7 +24,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const { 
     isAdmin, 
-    isViewer 
+    isViewer,
+    isEditor 
   } = useRoleChecks(userRole);
 
   // Wrap the signIn function to set loading
@@ -63,7 +64,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         signUp: wrappedSignUp,
         signOut,
         isAdmin,
-        isViewer
+        isViewer,
+        isEditor
       }}
     >
       {children}

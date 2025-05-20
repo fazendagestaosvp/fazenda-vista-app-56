@@ -11,4 +11,5 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
   isViewer: () => boolean;
+  isEditor: () => boolean;
 }

@@ -7,14 +7,16 @@ interface ProtectedRouteProps {
   children: ReactNode;
   adminOnly?: boolean;
   noViewers?: boolean;
+  editorsOnly?: boolean;
 }
 
 const ProtectedRoute = ({ 
   children, 
   adminOnly = false, 
-  noViewers = false 
+  noViewers = false,
+  editorsOnly = false
 }: ProtectedRouteProps) => {
-  const { user, loading, isAdmin, isViewer } = useAuth();
+  const { user, loading, isAdmin, isViewer, isEditor } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -33,6 +35,11 @@ const ProtectedRoute = ({
 
   // Se a rota for apenas para admins e o usuário não for admin
   if (adminOnly && !isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // Se a rota for apenas para editores e o usuário não for admin nem editor
+  if (editorsOnly && !isAdmin() && !isEditor()) {
     return <Navigate to="/dashboard" replace />;
   }
   
