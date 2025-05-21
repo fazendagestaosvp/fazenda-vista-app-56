@@ -3,9 +3,10 @@
 import { User } from "@supabase/supabase-js";
 
 // General service response type
-export interface ServiceResponse {
+export interface ServiceResponse<T = any> {
   success: boolean;
   error?: string;
+  data?: T;
 }
 
 // Authentication related types
@@ -48,13 +49,18 @@ export interface UpdateProfileProps {
 // User management types
 export interface UpdateUserProps {
   userId: string;
+  fullName?: string;
+  role?: string;
   email?: string;
   isActive?: boolean;
 }
 
 export interface UpdateUserAdminProps {
   userId: string;
-  role: string;
+  email?: string;
+  password?: string;
+  role?: string;
+  user_metadata?: { [key: string]: any };
 }
 
 // Interface for user with profile information

@@ -120,7 +120,7 @@ export const updateUserAdmin = async ({ userId, email, password, role, user_meta
 
     // Atualizar role se fornecido
     if (role) {
-      await updateUserRole(userId, role);
+      await updateUserRole(userId, role as DbRole);
     }
 
     return data;

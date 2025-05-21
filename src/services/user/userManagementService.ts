@@ -29,7 +29,7 @@ export const fetchUsers = async (): Promise<ServiceResponse<UserWithProfile[]>> 
 export const updateUser = async ({ userId, fullName, role }: UpdateUserProps): Promise<ServiceResponse> => {
   try {
     // Convert UI role to DB role if provided
-    const dbRole = role ? uiToDbRole(role) : undefined;
+    const dbRole = role ? uiToDbRole(role as UiRole) : undefined;
     
     // Update profile if fullName is provided
     if (fullName) {
