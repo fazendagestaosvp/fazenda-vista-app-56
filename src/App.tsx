@@ -1,7 +1,9 @@
+
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AppLayout } from './components/AppLayout';
+import { AuthProvider } from './hooks/useAuthContext';
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -23,6 +25,7 @@ import AdminPromoteViewer from './pages/AdminPromoteViewer';
 import AdminPromoteEditor from './pages/AdminPromoteEditor';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
+import Index from './pages/Index';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -46,7 +49,6 @@ function App() {
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/animais" element={<Animais />} />
                 <Route path="/gestao-gado" element={<GestaoGado />} />
                 <Route path="/gestao-cavalos" element={<GestaoCavalos />} />
                 <Route path="/reproducao" element={<Reproducao />} />
