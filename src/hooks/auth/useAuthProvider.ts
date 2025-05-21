@@ -78,4 +78,4 @@ export const useAuthProvider = () => {
     loading,
     setLoading
   };
-}
+};
