@@ -1,468 +1,449 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DbRole, Profile, UiRole, dbToUiRole, uiToDbRole } from "@/types/user.types";
+import { Profile, DbRole, dbToUiRole, uiToDbRole } from "@/types/user.types";
 
-interface UserCreateData {
-  email: string;
-  password: string;
-  fullName: string;
-  role: UiRole;
-}
-
-interface UserUpdateData {
-  userId: string;
-  fullName?: string;
-  role?: UiRole;
-}
-
-/**
- * Adiciona um novo usuário ao sistema
- * @param userData Dados do usuário a ser criado
- * @returns Objeto com status da operação e dados do usuário criado ou erro
- */
-export const addUser = async (userData: UserCreateData) => {
+// Buscar todos os usuários com seus respectivos perfis
+export const getAllUsersWithProfiles = async () => {
   try {
-    // Obter o token de acesso do usuário atual
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error("Sessão expirada. Por favor, faça login novamente.");
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+
+    if (usersError) {
+      console.error("Erro ao listar usuários:", usersError);
+      throw usersError;
     }
-    
-    // Convert UI role to database role
-    const dbRole = uiToDbRole(userData.role);
-    
-    // Chamar a função Edge para criar o usuário
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL || "https://ebddlqmbvwnzzlsbimza.supabase.co"}/functions/v1/create-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          email: userData.email,
-          password: userData.password,
-          fullName: userData.fullName,
-          role: dbRole,
-        }),
-      }
+
+    const usersWithProfiles = await Promise.all(
+      users.map(async (user) => {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError && profileError.message !== 'PGRST116: The result of this query is too large (more than 1 row, where only one was expected)') {
+          console.error(`Erro ao buscar perfil para o usuário ${user.id}:`, profileError);
+          return { user, profile: null };
+        }
+
+        return { user, profile };
+      })
     );
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.error || 'Erro ao criar usuário');
-    }
 
-    return { success: true, data: result.user };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Ocorreu um erro ao criar o usuário" };
+    return usersWithProfiles;
+  } catch (error) {
+    console.error("Erro ao buscar usuários com perfis:", error);
+    throw error;
   }
 };
 
-/**
- * Atualiza os dados de um usuário existente
- * @param userData Dados do usuário a serem atualizados
- * @returns Objeto com status da operação
- */
-export const updateUser = async (userData: UserUpdateData) => {
+// Criar um novo usuário
+export const createUser = async (email: string, password?: string) => {
   try {
-    const { userId, fullName, role } = userData;
-    
-    // Verificar se pelo menos um campo para atualizar foi fornecido
-    if (!fullName && !role) {
-      throw new Error("Nenhum dado fornecido para atualização");
-    }
-    
-    // Obter o token de acesso do usuário atual
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error("Sessão expirada. Por favor, faça login novamente.");
-    }
-    
-    // Verificar se o usuário atual é administrador
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    if (roleError || !roleData || roleData.role !== 'admin') {
-      throw new Error("Acesso negado. Apenas administradores podem atualizar usuários.");
-    }
-    
-    // Atualizar o nome completo, se fornecido
-    if (fullName) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ full_name: fullName })
-        .eq('id', userId);
-        
-      if (profileError) {
-        throw new Error(`Erro ao atualizar perfil: ${profileError.message}`);
-      }
-    }
-    
-    // Atualizar o papel, se fornecido
-    if (role) {
-      // Usar uma abordagem mais simples e direta para evitar problemas com o enum
-      // Mapear o papel da UI diretamente para o valor aceito pelo banco
-      try {
-        // Convert UI role to database role
-        let dbRole: "admin" | "viewer" | "user";
-        
-        if (role === "admin") {
-          dbRole = "admin";
-        } else if (role === "editor") {
-          // 'editor' in UI is stored as 'user' in the database
-          dbRole = "user";
-        } else {
-          dbRole = "viewer";
-        }
-        
-        console.log('Atualizando papel para:', dbRole);
-        
-        const { error: roleUpdateError } = await supabase
-          .from('user_roles')
-          .update({ role: dbRole })
-          .eq('user_id', userId);
-          
-        if (roleUpdateError) {
-          throw new Error(`Erro ao atualizar papel: ${roleUpdateError.message}`);
-        }
-      } catch (error: any) {
-        console.error('Erro na primeira tentativa:', error);
-        
-        // Se a primeira abordagem falhar, tentar com uma função Edge
-        try {
-          // Obter o token de acesso do usuário atual
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (!session) {
-            throw new Error("Sessão expirada. Por favor, faça login novamente.");
-          }
-          
-          // Chamar a função Edge para atualizar o papel (se existir)
-          const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL || "https://ebddlqmbvwnzzlsbimza.supabase.co"}/functions/v1/update-user-role`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-              body: JSON.stringify({
-                userId,
-                // Converter o papel da UI para um formato que a função Edge possa processar
-                uiRole: role,
-              }),
-            }
-          );
-          
-          if (!response.ok) {
-            const result = await response.json();
-            throw new Error(result.error || 'Erro ao atualizar papel do usuário');
-          }
-        } catch (edgeError: any) {
-          console.error('Erro ao chamar função Edge:', edgeError);
-          throw new Error(`Não foi possível atualizar o papel: ${error.message}`);
-        }
-      }
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Ocorreu um erro ao atualizar o usuário" };
-  }
-};
-
-/**
- * Remove um usuário do sistema
- * @param userId ID do usuário a ser removido
- * @returns Objeto com status da operação
- */
-export const removeUser = async (userId: string) => {
-  try {
-    // Obter o token de acesso do usuário atual
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error("Sessão expirada. Por favor, faça login novamente.");
-    }
-    
-    // Verificar se o usuário atual é administrador
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    if (roleError || !roleData || roleData.role !== 'admin') {
-      throw new Error("Acesso negado. Apenas administradores podem remover usuários.");
-    }
-    
-    // Verificar se o usuário não está tentando remover a si mesmo
-    if (userId === session.user.id) {
-      throw new Error("Você não pode remover sua própria conta.");
-    }
-    
-    // Remover registros relacionados ao usuário
-    // 1. Remover papel do usuário
-    const { error: roleDeleteError } = await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId);
-      
-    if (roleDeleteError) {
-      throw new Error(`Erro ao remover papel do usuário: ${roleDeleteError.message}`);
-    }
-    
-    // 2. Remover perfil do usuário
-    const { error: profileDeleteError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId);
-      
-    if (profileDeleteError) {
-      throw new Error(`Erro ao remover perfil do usuário: ${profileDeleteError.message}`);
-    }
-    
-    // 3. Remover o usuário da autenticação (requer função Edge ou acesso admin)
-    // Chamar uma função Edge para remover o usuário da autenticação
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL || "https://ebddlqmbvwnzzlsbimza.supabase.co"}/functions/v1/delete-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          userId,
-        }),
-      }
-    );
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.error || 'Erro ao remover usuário');
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Ocorreu um erro ao remover o usuário" };
-  }
-};
-
-/**
- * Busca todos os usuários com seus papéis
- * @returns Lista de usuários com seus papéis
- */
-export const fetchUsers = async () => {
-  try {
-    // Buscar todos os usuários com seus papéis
-    const { data: usersWithRoles, error } = await supabase
-      .from('user_roles')
-      .select('id, user_id, role, created_at');
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: email,
+      password: password || "password", // Defina uma senha padrão ou gere uma aleatória
+      email_confirm: true,
+    });
 
     if (error) {
+      console.error("Erro ao criar usuário:", error);
       throw error;
     }
-    
-    // Buscar emails dos usuários
-    const userIds = usersWithRoles?.map(item => item.user_id) || [];
-    
-    // Buscar perfis dos usuários
-    const emailMap: Record<string, string> = {};
-    
-    // Buscar perfil para cada usuário individualmente
-    for (const userId of userIds) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .eq('id', userId)
-        .single();
-        
-      if (data) {
-        emailMap[userId] = data.full_name || 'Nome não disponível';
-      }
-    }
 
-    // Formatar os dados para exibição
-    const formattedUsers = usersWithRoles?.map(item => {
-      // Converter papel do banco para o formato da UI
-      const dbRole = item.role as DbRole;
-      const uiRole = dbToUiRole(dbRole);
-      
-      return {
-        id: item.user_id,
-        name: emailMap[item.user_id] || 'Nome não disponível',
-        role: uiRole,
-        created_at: new Date(item.created_at).toLocaleDateString()
-      };
-    }) || [];
-    
-    return { success: true, data: formattedUsers };
-  } catch (error: any) {
-    return { 
-      success: false, 
-      error: error.message || "Não foi possível carregar a lista de usuários" 
-    };
+    return data;
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error);
+    throw error;
   }
 };
 
-/**
- * Busca o perfil de um usuário
- * @param userId ID do usuário
- * @returns Objeto com o perfil do usuário ou null se não encontrado
- */
+// Excluir um usuário
+export const deleteUser = async (userId: string) => {
+  try {
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+
+    if (error) {
+      console.error("Erro ao excluir usuário:", error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao excluir usuário:", error);
+    throw error;
+  }
+};
+
+// Buscar um usuário pelo ID
+export const getUserById = async (userId: string) => {
+  try {
+    const { data: user, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+    if (userError) {
+      console.error("Erro ao buscar usuário por ID:", userError);
+      throw userError;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Erro ao buscar usuário por ID:", error);
+    throw error;
+  }
+};
+
+// Atualizar um usuário (admin)
+export const updateUserAdmin = async (
+  userId: string,
+  email?: string,
+  password?: string,
+  role?: DbRole,
+  user_metadata?: { [key: string]: any }
+) => {
+  try {
+    const updates: {
+      email?: string;
+      password?: string;
+      user_metadata?: { [key: string]: any };
+    } = {};
+
+    if (email) updates.email = email;
+    if (password) updates.password = password;
+    if (user_metadata) updates.user_metadata = user_metadata;
+
+    const { data, error } = await supabase.auth.admin.updateUserById(userId, updates);
+
+    if (error) {
+      console.error("Erro ao atualizar usuário (admin):", error);
+      throw error;
+    }
+
+    // Atualizar role se fornecido
+    if (role) {
+      await updateUserRole(userId, role);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar usuário (admin):", error);
+    throw error;
+  }
+};
+
+// Atualizar o perfil de um usuário
+export const updateProfile = async (userId: string, updates: Partial<Profile>) => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar perfil:", error);
+    throw error;
+  }
+};
+
+// Função auxiliar para buscar o perfil do usuário
 export const getUserProfile = async (userId: string): Promise<Profile | null> => {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .eq('id', userId)
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
       .single();
-    
+
     if (error) {
-      throw error;
+      // If no profile is found, return null instead of throwing an error
+      if (error.message === 'PGRST116: The result of this query is too large (more than 1 row, where only one was expected)') {
+        console.warn("More than one profile found for user:", userId);
+      } else if (error.message !== 'PGRST116: The result of this query is too large (more than 1 row, where only one was expected)') {
+        console.error("Erro ao buscar perfil:", error);
+      }
+      return null;
     }
-    
-    return data || null;
-  } catch (error: any) {
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar perfil:", error);
     return null;
   }
 };
 
-/**
- * Atualiza o papel de um usuário
- * @param userId ID do usuário
- * @param role Novo papel do usuário
- * @returns Objeto com status da operação
- */
-export const updateUserRole = async (userId: string, role: UiRole): Promise<{ success: boolean; error?: string }> => {
+// Obter informações completas do usuário (auth.user + profile)
+export const getCompleteUser = async (userId: string) => {
   try {
-    // Map UI role to database role
-    const dbRole = uiToDbRole(role);
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
 
-    // Obter o token de acesso do usuário atual
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error("Sessão expirada. Por favor, faça login novamente.");
+    if (userError) {
+      console.error("Erro ao buscar dados do usuário:", userError);
+      throw userError;
     }
-    
-    // Verificar se o usuário atual é administrador
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    if (roleError || !roleData || roleData.role !== 'admin') {
-      throw new Error("Acesso negado. Apenas administradores podem atualizar usuários.");
+
+    const profile = await getUserProfile(userId);
+
+    if (!userData.user) {
+      console.error("Dados do usuário não encontrados.");
+      return null;
     }
-    
-    // Atualizar o papel
-    const { error: roleUpdateError } = await supabase
-      .from('user_roles')
-      .update({ role: dbRole })
-      .eq('user_id', userId);
-      
-    if (roleUpdateError) {
-      throw new Error(`Erro ao atualizar papel: ${roleUpdateError.message}`);
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Ocorreu um erro ao atualizar o papel do usuário" };
+
+    return {
+      ...userData.user,
+      profile,
+      role: dbToUiRole(userData.user.app_metadata.role as DbRole),
+    };
+  } catch (error) {
+    console.error("Erro ao obter informações completas do usuário:", error);
+    throw error;
   }
 };
 
-/**
- * Verifica se um usuário pode acessar uma determinada funcionalidade
- * @param userRole Papel do usuário
- * @param requiredRole Papel necessário para acessar a funcionalidade
- * @returns true se o usuário pode acessar, false caso contrário
- */
-export const canAccessFeature = (userRole: string | null, requiredRole: UiRole): boolean => {
-  if (!userRole) return false;
-
-  // Map 'user' role from DB to 'editor' for permission checking
-  const normalizedUserRole = userRole === 'user' ? 'editor' : userRole;
-
-  // Verificar se o papel do usuário é igual ou superior ao papel necessário
-  return normalizedUserRole === requiredRole || normalizedUserRole === 'admin';
-};
-
-/**
- * Atualiza o papel de um usuário
- * @param userId ID do usuário
- * @param role Novo papel do usuário
- * @returns Objeto com status da operação
- */
-export const setUserRole = async (userId: string, role: UiRole) => {
-  try {
-    const dbRole = uiToDbRole(role);
-    
-    // Obter o token de acesso do usuário atual
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error("Sessão expirada. Por favor, faça login novamente.");
-    }
-    
-    // Verificar se o usuário atual é administrador
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-      
-    if (roleError || !roleData || roleData.role !== 'admin') {
-      throw new Error("Acesso negado. Apenas administradores podem atualizar usuários.");
-    }
-    
-    // Atualizar o papel
-    const { error: roleUpdateError } = await supabase
-      .from('user_roles')
-      .update({ role: dbRole })
-      .eq('user_id', userId);
-      
-    if (roleUpdateError) {
-      throw new Error(`Erro ao atualizar papel: ${roleUpdateError.message}`);
-    }
-    
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Ocorreu um erro ao atualizar o papel do usuário" };
-  }
-};
-
-/**
- * Busca o papel de um usuário
- * @param userId ID do usuário
- * @returns Papel do usuário ou null se não encontrado
- */
-export const getUserRole = async (userId: string): Promise<UiRole | null> => {
+// Inicializar perfil do usuário
+export const initUserProfile = async (userId: string, fullName: string, avatarUrl: string | null = null) => {
   try {
     const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
+      .from("profiles")
+      .insert([{ id: userId, full_name: fullName, avatar_url: avatarUrl }])
+      .select()
       .single();
-    
+
     if (error) {
+      console.error("Erro ao criar perfil do usuário:", error);
       throw error;
     }
-    
-    // Convert DB role to UI role
-    const dbRole = data?.role as DbRole;
-    return dbRole ? dbToUiRole(dbRole) : null;
+
+    return data;
   } catch (error) {
+    console.error("Erro ao criar perfil do usuário:", error);
+    throw error;
+  }
+};
+
+// Atualizar role do usuário
+export const updateUserRole = async (userId: string, role: DbRole) => {
+  try {
+    const { data, error } = await supabase.auth.admin.updateUserById(userId, {
+      app_metadata: { role: role },
+    });
+
+    if (error) {
+      console.error("Erro ao atualizar role do usuário:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar role do usuário:", error);
+    throw error;
+  }
+};
+
+// Service function to sign up a new user
+export const signUpUser = async (email: string, password?: string) => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Erro ao registrar usuário:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao registrar usuário:", error);
+    throw error;
+  }
+};
+
+// Service function to sign in an existing user
+export const signInUser = async (email: string, password?: string) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Erro ao autenticar usuário:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao autenticar usuário:", error);
+    throw error;
+  }
+};
+
+// Service function to sign out the current user
+export const signOutUser = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Erro ao fazer logout:", error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao fazer logout:", error);
+    throw error;
+  }
+};
+
+// Service function to reset user password
+export const resetUserPassword = async (email: string) => {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/atualizar-senha`,
+    });
+
+    if (error) {
+      console.error("Erro ao solicitar redefinição de senha:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao solicitar redefinição de senha:", error);
+    throw error;
+  }
+};
+
+// Service function to update user password
+export const updateUserPassword = async (newPassword: string) => {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      console.error("Erro ao atualizar senha:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar senha:", error);
+    throw error;
+  }
+};
+
+// Service function to update user email
+export const updateUserEmail = async (newEmail: string) => {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      email: newEmail,
+    });
+
+    if (error) {
+      console.error("Erro ao atualizar email:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar email:", error);
+    throw error;
+  }
+};
+
+// Service function to send an email verification request
+export const verifyUserEmail = async (email: string) => {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      type: "email",
+    });
+
+    if (error) {
+      console.error("Erro ao enviar email de verificação:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erro ao enviar email de verificação:", error);
+    throw error;
+  }
+};
+
+// Service function to get the current user session
+export const getCurrentSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+
+    if (error) {
+      console.error("Erro ao obter sessão:", error);
+      throw error;
+    }
+
+    return session;
+  } catch (error) {
+    console.error("Erro ao obter sessão:", error);
+    throw error;
+  }
+};
+
+// Service function to get the current user
+export const getCurrentUser = async () => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (error) {
+      console.error("Erro ao obter usuário:", error);
+      throw error;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Erro ao obter usuário:", error);
+    throw error;
+  }
+};
+
+// Service function to get the current user with profile and role
+export const getSessionUser = async () => {
+  try {
+    const session = await getCurrentSession();
+
+    if (!session) {
+      return null;
+    }
+
+    const userId = session.user.id;
+
+    const { data, error } = await supabase.auth.admin.getUserById(userId);
+
+    if (error) {
+      console.error("Erro ao buscar dados do usuário:", error);
+      throw error;
+    }
+
+    const profile = await getUserProfile(userId);
+
+    if (!data.user) {
+      console.error("Dados do usuário não encontrados.");
+      return null;
+    }
+
+    return {
+      ...data.user,
+      profile,
+      role: dbToUiRole(data.user.app_metadata.role as DbRole),
+    };
+  } catch (error) {
+    console.error("Erro ao obter informações do usuário da sessão:", error);
     return null;
   }
 };

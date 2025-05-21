@@ -1,23 +1,15 @@
 
 import { useState } from "react";
-import { File, FileText, FilePlus, FolderPlus, Search, Download, Trash2, MoreHorizontal, Folder } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { useDocuments } from "@/hooks/documents";
+import { Folder as FolderType, Document as DocumentType } from "@/hooks/documents";
 import { NewFolderDialog } from "@/components/documentos/NewFolderDialog";
 import { UploadDocumentDialog } from "@/components/documentos/UploadDocumentDialog";
-import { useDocuments } from "@/hooks/documents";
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { Folder as FolderType, Document as DocumentType } from "@/hooks/documents";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { useToast } from "@/components/ui/use-toast";
-
-interface BreadcrumbPath {
-  id: string | null;
-  name: string;
-}
+import { DocumentHeader } from "@/components/documentos/DocumentHeader";
+import { DocumentBreadcrumb, BreadcrumbPath } from "@/components/documentos/DocumentBreadcrumb";
+import { DocumentFilters } from "@/components/documentos/DocumentFilters";
+import { DocumentTable } from "@/components/documentos/DocumentTable";
 
 const DocumentosPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,7 +21,15 @@ const DocumentosPage = () => {
   const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   
-  const { folders, documents, isLoadingFolders, isLoadingDocuments, deleteDocument, getDownloadUrl } = useDocuments(currentFolder);
+  const { 
+    folders, 
+    documents, 
+    isLoadingFolders, 
+    isLoadingDocuments, 
+    deleteDocument, 
+    getDownloadUrl 
+  } = useDocuments(currentFolder);
+  
   const { toast } = useToast();
 
   const filteredItems = [...folders, ...documents].filter(item => {
@@ -78,20 +78,6 @@ const DocumentosPage = () => {
     }
   };
 
-  const getFileIcon = (type: string | null) => {
-    if (!type) return <File className="text-gray-500" size={24} />;
-    
-    if (type.includes("pdf")) {
-      return <File className="text-red-500" size={24} />;
-    } else if (type.includes("spreadsheet") || type.includes("excel") || type.includes("xlsx")) {
-      return <File className="text-green-600" size={24} />;
-    } else if (type.includes("word") || type.includes("document") || type.includes("docx")) {
-      return <File className="text-blue-600" size={24} />;
-    } else {
-      return <File className="text-gray-500" size={24} />;
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -101,152 +87,30 @@ const DocumentosPage = () => {
 
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <Input
-                type="search"
-                placeholder="Buscar documentos..."
-                className="pl-10 w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={() => setIsNewFolderDialogOpen(true)}
-              >
-                <FolderPlus size={16} />
-                Nova Pasta
-              </Button>
-              <Button 
-                className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2"
-                onClick={() => setIsUploadDialogOpen(true)}
-              >
-                <FilePlus size={16} />
-                Novo Documento
-              </Button>
-            </div>
-          </div>
+          <DocumentHeader 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onNewFolder={() => setIsNewFolderDialogOpen(true)}
+            onNewDocument={() => setIsUploadDialogOpen(true)}
+          />
           
-          <div className="mb-4">
-            <Breadcrumb>
-              {breadcrumbPath.map((item, index) => (
-                <BreadcrumbItem key={index}>
-                  <BreadcrumbLink 
-                    onClick={() => navigateToBreadcrumb(index)}
-                    className="cursor-pointer hover:underline"
-                  >
-                    {item.name}
-                  </BreadcrumbLink>
-                  {index < breadcrumbPath.length - 1 && <BreadcrumbSeparator />}
-                </BreadcrumbItem>
-              ))}
-            </Breadcrumb>
-          </div>
+          <DocumentBreadcrumb 
+            breadcrumbPath={breadcrumbPath} 
+            onNavigate={navigateToBreadcrumb}
+          />
           
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="documentos">Documentos</TabsTrigger>
-              <TabsTrigger value="pastas">Pastas</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value={activeTab} className="mt-0">
-              {isLoadingFolders || isLoadingDocuments ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-farm"></div>
-                </div>
-              ) : (
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[60%] md:w-[50%]">Nome</TableHead>
-                        <TableHead className="w-[20%] md:w-[20%]">Tipo</TableHead>
-                        <TableHead className="w-[20%] md:w-[15%] text-center">Tamanho</TableHead>
-                        <TableHead className="hidden md:table-cell w-[15%]">Data</TableHead>
-                        <TableHead className="w-[20%] md:w-[10%] text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredItems.length > 0 ? (
-                        filteredItems.map((item) => {
-                          const isFolder = "parent_id" in item;
-                          const doc = isFolder ? null : item as DocumentType;
-                          const folder = isFolder ? item as FolderType : null;
-                          
-                          return (
-                            <TableRow key={item.id}>
-                              <TableCell className="cursor-pointer hover:bg-gray-50" onClick={() => {
-                                if (isFolder) navigateToFolder(folder!);
-                              }}>
-                                <div className="flex items-center space-x-3">
-                                  {isFolder ? (
-                                    <Folder className="text-yellow-500" size={24} />
-                                  ) : (
-                                    getFileIcon(doc?.file_type || null)
-                                  )}
-                                  <span className="truncate font-medium">
-                                    {item.name}
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-gray-500 capitalize">
-                                {isFolder ? "Pasta" : (doc?.file_type?.split('/')[1] || "Documento")}
-                              </TableCell>
-                              <TableCell className="text-center text-gray-500">
-                                {isFolder ? "--" : doc?.file_size || "--"}
-                              </TableCell>
-                              <TableCell className="hidden md:table-cell text-gray-500">
-                                {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {!isFolder && doc && (
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="sm">
-                                        <MoreHorizontal size={18} />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem 
-                                        className="flex items-center gap-2"
-                                        onClick={() => handleDownload(doc)}
-                                        disabled={!doc.file_path}
-                                      >
-                                        <Download size={16} />
-                                        <span>Download</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        className="flex items-center gap-2 text-red-500"
-                                        onClick={() => handleDelete(doc)}
-                                      >
-                                        <Trash2 size={16} />
-                                        <span>Excluir</span>
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
-                            Nenhum item encontrado.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+          <DocumentFilters 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+          >
+            <DocumentTable 
+              isLoading={isLoadingFolders || isLoadingDocuments}
+              items={filteredItems}
+              onFolderClick={navigateToFolder}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
+            />
+          </DocumentFilters>
         </CardContent>
       </Card>
 
