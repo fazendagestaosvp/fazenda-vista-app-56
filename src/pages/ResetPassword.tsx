@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { updateUserPassword } from "@/services/user";
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -50,9 +52,7 @@ const ResetPassword = () => {
     setLoading(true);
     
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
+      const { error } = await updateUserPassword(newPassword);
       
       if (error) {
         setError(error.message);

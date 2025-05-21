@@ -1,148 +1,145 @@
-
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+// Update import paths to use the refactored services
+import { resetUserPassword, signInUser, signOutUser, signUpUser } from "@/services/user";
+import { initUserProfile } from "@/services/user";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
-export function useAuthMethods() {
+export const useAuthMethods = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Login with email and password
   const signIn = async (
-    email: string, 
-    password: string, 
+    email: string,
+    password: string,
     onSuccess?: () => void,
     onError?: (message: string) => void
   ) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } = await signInUser({ email, password });
 
       if (error) {
-        if (onError) {
-          onError(error.message);
-        } else {
-          toast({
-            title: "Erro ao fazer login",
-            description: error.message,
-            variant: "destructive"
-          });
-        }
+        console.error("Erro ao autenticar:", error);
+        toast({
+          title: "Erro ao autenticar",
+          description: "Verifique suas credenciais.",
+          variant: "destructive",
+        });
+        onError?.(error.message);
         return;
       }
 
-      toast({
-        title: "Login bem-sucedido",
-        description: "Bem-vindo ao FazendaPlus!"
-      });
-      
-      if (onSuccess) {
-        onSuccess();
+      if (data?.user) {
+        toast({
+          title: "Login realizado",
+          description: "Login realizado com sucesso!",
+        });
+        onSuccess?.();
       }
     } catch (error: any) {
-      if (onError) {
-        onError(error.message || "Ocorreu um erro durante o login");
-      } else {
-        toast({
-          title: "Erro ao fazer login",
-          description: error.message || "Ocorreu um erro durante o login",
-          variant: "destructive"
-        });
-      }
+      console.error("Erro durante o login:", error);
+      toast({
+        title: "Erro ao autenticar",
+        description: error.message || "Ocorreu um erro durante o login.",
+        variant: "destructive",
+      });
+      onError?.(error.message);
     }
   };
 
-  // Sign up with email, password, and full name
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName
-          }
-        }
-      });
+      const { data, error } = await signUpUser(email, password);
 
       if (error) {
+        console.error("Erro ao registrar:", error);
         toast({
-          title: "Erro ao criar conta",
-          description: error.message,
-          variant: "destructive"
+          title: "Erro ao registrar",
+          description: "Tente novamente ou entre em contato com o suporte.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.user) {
+        // Initialize user profile after successful signup
+        await initUserProfile({
+          userId: data.user.id,
+          fullName: fullName,
+        });
+
+        toast({
+          title: "Registro realizado",
+          description: "Confirme seu email para ativar a conta!",
+        });
+        navigate("/login");
+      }
+    } catch (error: any) {
+      console.error("Erro durante o registro:", error);
+      toast({
+        title: "Erro ao registrar",
+        description: error.message || "Ocorreu um erro durante o registro.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      const { error } = await signOutUser();
+
+      if (error) {
+        console.error("Erro ao sair:", error);
+        toast({
+          title: "Erro ao sair",
+          description: "Não foi possível sair da sua conta.",
+          variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Conta criada",
-        description: "Verifique seu email para confirmar seu cadastro."
+        title: "Você saiu da sua conta",
+        description: "Logout realizado com sucesso!",
       });
+      navigate("/login");
     } catch (error: any) {
+      console.error("Erro durante o logout:", error);
       toast({
-        title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro durante o cadastro",
-        variant: "destructive"
+        title: "Erro ao sair",
+        description: error.message || "Ocorreu um erro durante o logout.",
+        variant: "destructive",
       });
     }
   };
 
-  // Sign out
-  const signOut = async () => {
+  const resetPassword = async (email: string) => {
     try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Logout realizado",
-        description: "Você saiu da sua conta com sucesso."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao fazer logout",
-        description: error.message || "Ocorreu um erro durante o logout",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Reset password
-  const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { error } = await resetUserPassword({ email });
 
       if (error) {
+        console.error("Erro ao solicitar redefinição de senha:", error);
         toast({
           title: "Erro ao redefinir senha",
-          description: error.message,
-          variant: "destructive"
+          description: "Não foi possível solicitar a redefinição de senha.",
+          variant: "destructive",
         });
-        return { success: false, message: error.message };
+        return;
       }
 
       toast({
-        title: "Email enviado",
-        description: "Verifique seu email para redefinir sua senha."
+        title: "Redefinição de senha solicitada",
+        description: "Verifique seu email para continuar!",
       });
-      return { success: true, message: "Email de redefinição de senha enviado com sucesso." };
     } catch (error: any) {
+      console.error("Erro ao solicitar redefinição de senha:", error);
       toast({
         title: "Erro ao redefinir senha",
-        description: error.message || "Ocorreu um erro ao solicitar a redefinição de senha",
-        variant: "destructive"
+        description:
+          error.message || "Ocorreu um erro ao solicitar a redefinição.",
+        variant: "destructive",
       });
-      return { 
-        success: false, 
-        message: error.message || "Ocorreu um erro ao solicitar a redefinição de senha" 
-      };
     }
   };
 
-  return {
-    signIn,
-    signUp,
-    signOut,
-    resetPassword
-  };
-}
+  return { signIn, signUp, signOut, resetPassword };
+};

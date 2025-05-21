@@ -1,9 +1,10 @@
+
 import React from "react";
 import { Button, ButtonProps } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { logout } from "@/services/authService";
+import { signOutUser } from "@/services/user";
 
 interface LogoutButtonProps extends ButtonProps {
   redirectTo?: string;
@@ -26,7 +27,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
 
   const handleLogout = async () => {
     try {
-      const result = await logout();
+      const result = await signOutUser();
       
       if (result.success) {
         toast({
