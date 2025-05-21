@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -19,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateUser } from "@/services/userService";
+import { updateUser } from "@/services/user/userManagementService";
 import { UiRole } from "@/types/user.types";
 
 interface User {

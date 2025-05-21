@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -36,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import UserAddDialog from "./UserAddDialog";
 import UserEditDialog from "./UserEditDialog";
-import { fetchUsers, removeUser, updateUser } from "@/services/userService";
+import { fetchUsers, removeUser, updateUser } from "@/services/user/userManagementService";
 import { UiRole } from "@/types/user.types";
 
 interface User {
