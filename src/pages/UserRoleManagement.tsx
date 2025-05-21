@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +8,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import { Eye, Shield, User } from "lucide-react";
+import { DbRole, UiRole, dbToUiRole } from "@/types/user.types";
 
 type UserWithRole = {
   id: string;
   email: string;
-  role: "admin" | "editor" | "viewer";
+  role: UiRole;
 };
 
 const UserRoleManagement = () => {
@@ -45,17 +45,14 @@ const UserRoleManagement = () => {
 
       if (data) {
         const usersWithRoles = data.map((user: any) => {
-          // Map 'user' role from database to 'editor' for UI consistency
-          let role = user.user_roles?.role || 'viewer';
-          
-          if (role === 'user') {
-            role = 'editor';
-          }
+          // Map DB role to UI role for consistency
+          const dbRole = user.user_roles?.role as DbRole || 'viewer';
+          const uiRole = dbToUiRole(dbRole);
 
           return {
             id: user.id,
             email: user.email,
-            role: role as "admin" | "editor" | "viewer",
+            role: uiRole,
           };
         });
 

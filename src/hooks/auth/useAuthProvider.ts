@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { DbRole, UiRole, dbToUiRole } from "@/types/user.types";
 
 export const useAuthProvider = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<"admin" | "editor" | "viewer" | null>(null);
+  const [userRole, setUserRole] = useState<UiRole | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -61,13 +62,10 @@ export const useAuthProvider = () => {
         return;
       }
 
-      // Map 'user' role from database to 'editor' for UI
-      if (data.role === 'user') {
-        setUserRole('editor');
-      } else {
-        // Type assertion to handle role as the expected type
-        setUserRole(data.role as "admin" | "editor" | "viewer");
-      }
+      // Convert DB role to UI role
+      const dbRole = data.role as DbRole;
+      setUserRole(dbToUiRole(dbRole));
+      
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);
     }

@@ -1,16 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
+import { DbRole, Profile, UiRole, dbToUiRole, uiToDbRole } from "@/types/user.types";
 
 interface UserCreateData {
   email: string;
   password: string;
   fullName: string;
-  role: "admin" | "editor" | "viewer";
+  role: UiRole;
 }
 
 interface UserUpdateData {
   userId: string;
   fullName?: string;
-  role?: "admin" | "editor" | "viewer";
+  role?: UiRole;
 }
 
 /**
@@ -28,12 +29,7 @@ export const addUser = async (userData: UserCreateData) => {
     }
     
     // Convert UI role to database role
-    let dbRole: "admin" | "viewer" | "user";
-    if (userData.role === "editor") {
-      dbRole = "user";
-    } else {
-      dbRole = userData.role as "admin" | "viewer";
-    }
+    const dbRole = uiToDbRole(userData.role);
     
     // Chamar a função Edge para criar o usuário
     const response = await fetch(
@@ -298,15 +294,8 @@ export const fetchUsers = async () => {
     // Formatar os dados para exibição
     const formattedUsers = usersWithRoles?.map(item => {
       // Converter papel do banco para o formato da UI
-      let uiRole: "admin" | "editor" | "viewer";
-      
-      if (item.role === "admin") {
-        uiRole = "admin";
-      } else if (item.role === "user") {
-        uiRole = "editor"; // Map 'user' from DB to 'editor' in UI
-      } else {
-        uiRole = "viewer";
-      }
+      const dbRole = item.role as DbRole;
+      const uiRole = dbToUiRole(dbRole);
       
       return {
         id: item.user_id,
@@ -354,10 +343,10 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
  * @param role Novo papel do usuário
  * @returns Objeto com status da operação
  */
-export const updateUserRole = async (userId: string, role: "admin" | "editor" | "viewer"): Promise<{ success: boolean; error?: string }> => {
+export const updateUserRole = async (userId: string, role: UiRole): Promise<{ success: boolean; error?: string }> => {
   try {
-    // Map 'editor' to 'user' for database compatibility if needed
-    const dbRole = role === 'editor' ? 'user' as any : role;
+    // Map UI role to database role
+    const dbRole = uiToDbRole(role);
 
     // Obter o token de acesso do usuário atual
     const { data: { session } } = await supabase.auth.getSession();
@@ -388,7 +377,7 @@ export const updateUserRole = async (userId: string, role: "admin" | "editor" | 
     }
     
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message || "Ocorreu um erro ao atualizar o papel do usuário" };
   }
 };
@@ -399,10 +388,10 @@ export const updateUserRole = async (userId: string, role: "admin" | "editor" | 
  * @param requiredRole Papel necessário para acessar a funcionalidade
  * @returns true se o usuário pode acessar, false caso contrário
  */
-export const canAccessFeature = (userRole: string | null, requiredRole: "admin" | "editor" | "viewer"): boolean => {
+export const canAccessFeature = (userRole: string | null, requiredRole: UiRole): boolean => {
   if (!userRole) return false;
 
-  // Map 'user' role to 'editor' for permission checking
+  // Map 'user' role from DB to 'editor' for permission checking
   const normalizedUserRole = userRole === 'user' ? 'editor' : userRole;
 
   // Verificar se o papel do usuário é igual ou superior ao papel necessário
@@ -415,9 +404,9 @@ export const canAccessFeature = (userRole: string | null, requiredRole: "admin" 
  * @param role Novo papel do usuário
  * @returns Objeto com status da operação
  */
-export const setUserRole = async (userId: string, role: "admin" | "editor" | "viewer") => {
+export const setUserRole = async (userId: string, role: UiRole) => {
   try {
-    const dbRole = role === "editor" ? "user" : role;
+    const dbRole = uiToDbRole(role);
     
     // Obter o token de acesso do usuário atual
     const { data: { session } } = await supabase.auth.getSession();
@@ -448,7 +437,7 @@ export const setUserRole = async (userId: string, role: "admin" | "editor" | "vi
     }
     
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message || "Ocorreu um erro ao atualizar o papel do usuário" };
   }
 };
@@ -458,7 +447,7 @@ export const setUserRole = async (userId: string, role: "admin" | "editor" | "vi
  * @param userId ID do usuário
  * @returns Papel do usuário ou null se não encontrado
  */
-export const getUserRole = async (userId: string): Promise<"admin" | "editor" | "viewer" | null> => {
+export const getUserRole = async (userId: string): Promise<UiRole | null> => {
   try {
     const { data, error } = await supabase
       .from('user_roles')
@@ -470,11 +459,9 @@ export const getUserRole = async (userId: string): Promise<"admin" | "editor" | 
       throw error;
     }
     
-    if (data?.role === "user") {
-      return "editor";
-    }
-    
-    return data?.role as "admin" | "editor" | "viewer" | null;
+    // Convert DB role to UI role
+    const dbRole = data?.role as DbRole;
+    return dbRole ? dbToUiRole(dbRole) : null;
   } catch (error) {
     return null;
   }
