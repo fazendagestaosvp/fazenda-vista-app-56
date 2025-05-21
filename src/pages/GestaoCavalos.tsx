@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowDown, ArrowUp, Search, Plus, Upload, Camera, Check, AlertTriangle, Syringe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -170,6 +170,21 @@ const GestaoCavalos = () => {
     },
   });
 
+  // Reset form when dialog is opened
+  useEffect(() => {
+    if (isAddHorseDialogOpen) {
+      form.reset({
+        name: "",
+        breed: "",
+        color: "",
+        gender: "",
+        status: "Ativo - Potro",
+        vaccinations: standardVaccinations.map(name => ({ name, date: null, applied: false })),
+        customVaccinations: [],
+      });
+    }
+  }, [isAddHorseDialogOpen, form]);
+
   const filteredHorses = horses.filter(
     (horse) =>
       horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -334,10 +349,11 @@ const GestaoCavalos = () => {
   };
 
   const onSubmit = (values: z.infer<typeof horseSchema>) => {
+    // Create a new horse with all required fields
     const newHorse = {
       id: `HC-${Math.floor(Math.random() * 900) + 100}`,
       name: values.name,
-      age: new Date().getFullYear() - (values.birthDate ? values.birthDate.getFullYear() : new Date().getFullYear()),
+      age: values.birthDate ? new Date().getFullYear() - values.birthDate.getFullYear() : 0,
       breed: values.breed,
       color: values.color,
       gender: values.gender,
@@ -355,14 +371,20 @@ const GestaoCavalos = () => {
       customVaccinations: [],
     };
 
-    setHorses([...horses, newHorse]);
-    setIsAddHorseDialogOpen(false);
-    form.reset();
+    // Update the horses state with the new horse
+    setHorses(prevHorses => [...prevHorses, newHorse]);
     
+    // Close the dialog
+    setIsAddHorseDialogOpen(false);
+    
+    // Show success toast
     toast({
       title: "Cavalo adicionado",
       description: `${newHorse.name} foi adicionado com sucesso.`
     });
+    
+    // Reset the form
+    form.reset();
   };
 
   return (
