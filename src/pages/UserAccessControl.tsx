@@ -9,11 +9,15 @@ import { DbRole, dbToUiRole } from "@/types/user.types";
 import { UserWithRole } from "@/components/access-control/types";
 import UserSearchInput from "@/components/access-control/UserSearchInput";
 import UserRolesTable from "@/components/access-control/UserRolesTable";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const UserAccessControl = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { userRole } = useAuth();
@@ -52,17 +56,30 @@ const UserAccessControl = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      setError(null);
+      
+      // Buscar perfis de usuários
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, user_roles(role)')
+        .select('id, email')
         .order('email');
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      if (data) {
-        const usersWithRoles = data.map((user: any) => {
-          // Map DB role to UI role for consistency
-          const dbRole = user.user_roles?.role as DbRole || 'viewer';
+      // Buscar roles de usuários
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+        
+      if (rolesError && rolesError.code !== 'PGRST116') {
+        console.error("Erro ao buscar papéis dos usuários:", rolesError);
+      }
+
+      if (profiles) {
+        const usersWithRoles = profiles.map((user: any) => {
+          // Encontrar o role do usuário, se existir
+          const userRole = userRoles?.find(role => role.user_id === user.id);
+          const dbRole = userRole?.role as DbRole || 'viewer';
           const uiRole = dbToUiRole(dbRole);
 
           return {
@@ -72,11 +89,13 @@ const UserAccessControl = () => {
           };
         });
 
+        console.log("Usuários encontrados:", usersWithRoles.length);
         setUsers(usersWithRoles);
         setFilteredUsers(usersWithRoles);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
+      setError(error.message || "Ocorreu um erro ao carregar a lista de usuários");
       toast({
         title: "Erro ao buscar usuários",
         description: "Ocorreu um erro ao carregar a lista de usuários",
@@ -110,11 +129,30 @@ const UserAccessControl = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <UserRolesTable 
-            users={filteredUsers}
-            loading={loading}
-            onRoleChange={fetchUsers}
-          />
+          {error ? (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erro ao carregar usuários</AlertTitle>
+              <AlertDescription>
+                <p>{error}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={fetchUsers}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Tentar novamente
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <UserRolesTable 
+              users={filteredUsers}
+              loading={loading}
+              onRoleChange={fetchUsers}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

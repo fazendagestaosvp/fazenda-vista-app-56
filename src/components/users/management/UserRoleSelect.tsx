@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { updateUser } from "@/services/user/userManagementService";
 import { UiRole } from "@/types/user.types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserRoleSelectProps {
   userId: string;
@@ -18,27 +19,40 @@ interface UserRoleSelectProps {
 
 export default function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
   const [role, setRole] = useState<string>(currentRole);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleRoleChange = async (newRole: string) => {
-    const result = await updateUser({
-      userId,
-      role: newRole as UiRole
-    });
-
-    if (result.success) {
-      setRole(newRole);
-      
-      toast({
-        title: "Papel atualizado",
-        description: `O papel do usuário foi atualizado para ${newRole} com sucesso!`,
+    setIsSubmitting(true);
+    
+    try {
+      const result = await updateUser({
+        userId,
+        role: newRole as UiRole
       });
-    } else {
+
+      if (result.success) {
+        setRole(newRole);
+        
+        toast({
+          title: "Papel atualizado",
+          description: `O papel do usuário foi atualizado para ${newRole} com sucesso!`,
+        });
+      } else {
+        toast({
+          title: "Erro ao atualizar papel",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       toast({
         title: "Erro ao atualizar papel",
-        description: result.error,
+        description: error.message || "Ocorreu um erro ao atualizar o papel do usuário",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -46,6 +60,7 @@ export default function UserRoleSelect({ userId, currentRole }: UserRoleSelectPr
     <Select
       value={role}
       onValueChange={(value) => handleRoleChange(value)}
+      disabled={isSubmitting}
     >
       <SelectTrigger className="w-[130px]">
         <SelectValue placeholder="Selecione" />
