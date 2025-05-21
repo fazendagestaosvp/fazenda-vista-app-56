@@ -25,6 +25,7 @@ export const useAuthProvider = () => {
     fetchSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log("Auth state changed:", event, newSession?.user?.id);
       setSession(newSession);
       setUser(newSession?.user || null);
     });
@@ -35,8 +36,21 @@ export const useAuthProvider = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        if (!session) {
+          setLoading(false);
+          return;
+        }
+        
         const sessionUser = await getSessionUser();
         setUser(sessionUser);
+        
+        // Force admin role for debugging purposes
+        // In production, you would remove this override and use the actual role
+        // setUserRole('admin');
+        
+        console.log("Session user fetched:", sessionUser);
+        console.log("User role:", sessionUser?.role);
+        
         setUserRole(sessionUser?.role || null);
       } catch (error) {
         console.error("Erro ao buscar informações do usuário:", error);

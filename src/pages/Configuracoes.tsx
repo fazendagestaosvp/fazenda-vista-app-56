@@ -13,6 +13,8 @@ const Configuracoes = () => {
   
   // Verificação direta do papel do usuário para exibir funcionalidades administrativas
   const isAdminUser = userRole === "admin";
+  
+  console.log("isAdminUser:", isAdminUser);
 
   return (
     <div className="space-y-6">
