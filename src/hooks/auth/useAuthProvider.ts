@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 export function useAuthProvider() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<"admin" | "user" | "viewer" | null>(null);
+  const [userRole, setUserRole] = useState<"admin" | "editor" | "viewer" | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -62,7 +62,13 @@ export function useAuthProvider() {
       }
 
       console.log("Função do usuário encontrada:", data.role);
-      setUserRole(data.role);
+      
+      // Map database role to UI role
+      if (data.role === 'user') {
+        setUserRole('editor');
+      } else {
+        setUserRole(data.role as "admin" | "editor" | "viewer");
+      }
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);
     }

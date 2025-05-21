@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserCreateData {
@@ -106,15 +107,14 @@ export const updateUser = async (userData: UserUpdateData) => {
       // Usar uma abordagem mais simples e direta para evitar problemas com o enum
       // Mapear o papel da UI diretamente para o valor aceito pelo banco
       try {
-        // Primeiro tentar uma abordagem direta com o valor "viewer" para editor
-        // Isso é um fallback seguro, já que "viewer" é um valor válido no enum
-        let dbRole: "admin" | "viewer" | "user" = "viewer";
+        // Convert UI role to database role
+        let dbRole: "admin" | "viewer" | "user";
         
         if (role === "admin") {
           dbRole = "admin";
         } else if (role === "editor") {
-          // Para editor, usar viewer como valor seguro
-          dbRole = "viewer";
+          // 'editor' in UI is stored as 'user' in the database
+          dbRole = "user";
         } else {
           dbRole = "viewer";
         }
@@ -291,8 +291,15 @@ export const fetchUsers = async () => {
     // Formatar os dados para exibição
     const formattedUsers = usersWithRoles?.map(item => {
       // Converter papel do banco para o formato da UI
-      let uiRole = item.role;
-      if (item.role === 'user') uiRole = 'editor';
+      let uiRole: "admin" | "editor" | "viewer";
+      
+      if (item.role === "admin") {
+        uiRole = "admin";
+      } else if (item.role === "user") {
+        uiRole = "editor"; // Map 'user' from DB to 'editor' in UI
+      } else {
+        uiRole = "viewer";
+      }
       
       return {
         id: item.user_id,

@@ -13,7 +13,7 @@ import { Eye, Shield, User } from "lucide-react";
 type UserWithRole = {
   id: string;
   email: string;
-  role: "admin" | "user" | "viewer";
+  role: "admin" | "editor" | "viewer";
 };
 
 const UserRoleManagement = () => {
@@ -52,11 +52,16 @@ const UserRoleManagement = () => {
       // usaríamos uma função RPC ou Edge Function aqui
       // Por enquanto, simulamos com emails baseados no ID
       
-      const formattedUsers = usersData.map(user => ({
-        id: user.user_id,
-        email: `user-${user.user_id.substring(0, 8)}@example.com`, // simulado
-        role: user.role
-      }));
+      const formattedUsers = usersData.map(user => {
+        // Map database role to UI role
+        let uiRole: "admin" | "editor" | "viewer" = user.role === "user" ? "editor" : user.role as "admin" | "viewer";
+        
+        return {
+          id: user.user_id,
+          email: `user-${user.user_id.substring(0, 8)}@example.com`, // simulado
+          role: uiRole
+        };
+      });
       
       setUsers(formattedUsers);
     } catch (error: any) {
