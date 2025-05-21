@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UsersIcon, LogOut } from "lucide-react";
+import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UsersIcon, LogOut, UserCog } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,7 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   
   const adminLinks = [
     { icon: UsersIcon, label: "Usuários", to: "/admin/users" },
-    { icon: Users, label: "Controle de Acesso", to: "/admin/access-control" }
+    { icon: UserCog, label: "Controle de Acesso", to: "/admin/access-control" }
   ];
 
   return (

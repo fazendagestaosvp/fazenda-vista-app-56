@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
-import { Eye, Shield, User } from "lucide-react";
+import { Eye, Shield, User, Search, Loader2 } from "lucide-react";
 import { DbRole, UiRole, dbToUiRole } from "@/types/user.types";
+import { Input } from "@/components/ui/input";
 
 type UserWithRole = {
   id: string;
@@ -19,7 +20,9 @@ type UserWithRole = {
 
 const UserAccessControl = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -28,12 +31,29 @@ const UserAccessControl = () => {
   useEffect(() => {
     if (!isAdmin()) {
       navigate("/dashboard");
+      toast({
+        title: "Acesso restrito",
+        description: "Apenas administradores podem acessar esta página",
+        variant: "destructive",
+      });
     }
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, toast]);
   
   useEffect(() => {
     fetchUsers();
   }, []);
+  
+  // Filtrar usuários baseado no termo de busca
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(user => 
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchTerm, users]);
   
   const fetchUsers = async () => {
     try {
@@ -59,9 +79,15 @@ const UserAccessControl = () => {
         });
 
         setUsers(usersWithRoles);
+        setFilteredUsers(usersWithRoles);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+      toast({
+        title: "Erro ao buscar usuários",
+        description: "Ocorreu um erro ao carregar a lista de usuários",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -149,11 +175,13 @@ const UserAccessControl = () => {
   };
   
   return (
-    <div>
-      <h2 className="text-3xl font-bold tracking-tight mb-4">Controle de Acesso</h2>
-      <p className="text-muted-foreground mb-6">
-        Gerencie os níveis de acesso dos usuários no sistema.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Controle de Acesso</h2>
+        <p className="text-muted-foreground">
+          Gerencie os níveis de acesso dos usuários no sistema.
+        </p>
+      </div>
       
       <Card>
         <CardHeader>
@@ -161,11 +189,22 @@ const UserAccessControl = () => {
           <CardDescription>
             Promova ou altere o nível de acesso dos usuários no sistema
           </CardDescription>
+          <div className="flex items-center mt-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuário por email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-farm"></div>
+              <Loader2 className="animate-spin h-8 w-8 text-farm" />
             </div>
           ) : (
             <Table>
@@ -177,8 +216,8 @@ const UserAccessControl = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
@@ -223,8 +262,8 @@ const UserAccessControl = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">
-                      Nenhum usuário encontrado
+                    <TableCell colSpan={3} className="text-center py-6">
+                      {searchTerm ? "Nenhum usuário encontrado com este email" : "Nenhum usuário encontrado"}
                     </TableCell>
                   </TableRow>
                 )}

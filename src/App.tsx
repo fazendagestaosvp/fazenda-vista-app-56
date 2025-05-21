@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuthContext";
 import { Toaster } from "@/components/ui/toaster";
@@ -35,77 +34,29 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Index />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="animais" element={<Animais />} />
-            <Route path="gestao-gado" element={<GestaoGado />} />
-            <Route path="gestao-cavalos" element={<GestaoCavalos />} />
-            <Route path="calendario" element={<Calendario />} />
-            <Route path="configuracoes" element={<Configuracoes />} />
-            <Route path="configuracoes/perfil" element={<UserProfile />} />
-            <Route path="configuracoes/seguranca" element={<SecuritySettings />} />
-            <Route path="configuracoes/notificacoes" element={<NotificationSettings />} />
-            <Route path="relatorios" element={<Relatorios />} />
-            <Route path="reproducao" element={<Reproducao />} />
-            <Route path="historico-saude" element={<HistoricoSaude />} />
-            <Route path="documentos" element={<Documentos />} />
-            <Route 
-              path="admin/promote" 
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <AdminPromote />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="admin/usuarios" 
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <UserManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="admin/promote-editor" 
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <AdminPromoteEditor />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="admin/promote-viewer" 
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <AdminPromoteViewer />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="admin/users" 
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <UserRoleManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="admin/access-control" 
-              element={
-                <ProtectedRoute adminOnly={true}>
-                  <UserAccessControl />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/animais" element={<Animais />} />
+              <Route path="/gestao-gado" element={<GestaoGado />} />
+              <Route path="/gestao-cavalos" element={<GestaoCavalos />} />
+              <Route path="/reproducao" element={<Reproducao />} />
+              <Route path="/historico-saude" element={<HistoricoSaude />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+              <Route path="/calendario" element={<Calendario />} />
+              <Route path="/documentos" element={<Documentos />} />
+              <Route path="/configuracoes" element={<Configuracoes />} />
+              <Route path="/configuracoes/perfil" element={<UserProfile />} />
+              <Route path="/configuracoes/seguranca" element={<SecuritySettings />} />
+              <Route path="/configuracoes/notificacoes" element={<NotificationSettings />} />
+              <Route path="/admin/users" element={<UserManagement />} />
+              <Route path="/admin/access-control" element={<UserAccessControl />} />
+              <Route path="/admin/promote" element={<AdminPromote />} />
+              <Route path="/admin/promote-editor" element={<AdminPromoteEditor />} />
+              <Route path="/admin/promote-viewer" element={<AdminPromoteViewer />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Route>
         </Routes>
         <Toaster />
