@@ -1,12 +1,23 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileDown, Filter } from 'lucide-react';
+import { FileText, Filter } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { healthData } from '../ReportsData';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { exportToPDF } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const HealthStatusChart = () => {
+  const [showReport, setShowReport] = useState(false);
+  
+  const handleExportReport = () => {
+    exportToPDF('saude');
+    toast.success("Relatório completo de saúde exportado com sucesso!");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -63,12 +74,47 @@ const HealthStatusChart = () => {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline">Ver relatório completo</Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <FileDown size={16} />
+        <Button variant="outline" onClick={() => setShowReport(true)}>
+          Ver relatório completo
+        </Button>
+        <Button variant="outline" className="flex items-center gap-2" onClick={handleExportReport}>
+          <FileText size={16} />
           Exportar dados
         </Button>
       </CardFooter>
+
+      <Dialog open={showReport} onOpenChange={setShowReport}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Relatório Completo de Saúde</DialogTitle>
+            <DialogDescription>
+              Detalhamento mensal do estado de saúde do rebanho
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Mês</th>
+                  <th className="text-left py-2">Saudáveis</th>
+                  <th className="text-left py-2">Em Tratamento</th>
+                  <th className="text-left py-2">Em Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {healthData.map((item, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="py-2">{item.month}</td>
+                    <td className="py-2">{item.saudaveis}</td>
+                    <td className="py-2">{item.emTratamento}</td>
+                    <td className="py-2">{item.emObservacao}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
