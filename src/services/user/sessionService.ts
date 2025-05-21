@@ -40,32 +40,31 @@ export const getCurrentUser = async () => {
 // Service function to get the current user with profile and role
 export const getSessionUser = async () => {
   try {
+    // Get the current session
     const session = await getCurrentSession();
 
     if (!session) {
       return null;
     }
 
-    const userId = session.user.id;
-
-    const { data, error } = await supabase.auth.admin.getUserById(userId);
-
-    if (error) {
-      console.error("Erro ao buscar dados do usuário:", error);
-      throw error;
-    }
-
-    const profile = await getUserProfile(userId);
-
-    if (!data.user) {
-      console.error("Dados do usuário não encontrados.");
+    // Get the user directly from the session
+    const user = session.user;
+    
+    if (!user) {
+      console.error("Dados do usuário não encontrados na sessão.");
       return null;
     }
 
+    // Get user profile from profiles table
+    const profile = await getUserProfile(user.id);
+
+    // Determine role from app_metadata if available, default to viewer
+    const roleValue = user.app_metadata?.role as DbRole || 'viewer';
+    
     return {
-      ...data.user,
+      ...user,
       profile,
-      role: dbToUiRole(data.user.app_metadata.role as DbRole),
+      role: dbToUiRole(roleValue),
     };
   } catch (error) {
     console.error("Erro ao obter informações do usuário da sessão:", error);
