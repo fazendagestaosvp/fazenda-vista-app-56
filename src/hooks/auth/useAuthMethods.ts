@@ -1,3 +1,4 @@
+
 // Update import paths to use the refactored services
 import { resetUserPassword, signInUser, signOutUser, signUpUser } from "@/services/user";
 import { initUserProfile } from "@/services/user";
@@ -117,7 +118,7 @@ export const useAuthMethods = () => {
         title: "Redefinição de senha solicitada",
         description: "Verifique seu email para continuar!",
       });
-      return { success: true, message: "Email de redefinição enviado com sucesso." };
+      return { success: true, error: null };
     } catch (error: any) {
       console.error("Erro ao solicitar redefinição de senha:", error);
       toast({
@@ -126,7 +127,7 @@ export const useAuthMethods = () => {
           error.message || "Ocorreu um erro ao solicitar a redefinição.",
         variant: "destructive",
       });
-      return { success: false, message: error.message || "Erro ao solicitar redefinição." };
+      return { success: false, error: error.message || "Erro ao solicitar redefinição." };
     }
   };
 
