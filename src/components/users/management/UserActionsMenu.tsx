@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuthContext";
 
 interface User {
   id: string;
@@ -24,6 +25,13 @@ interface UserActionsMenuProps {
 }
 
 export default function UserActionsMenu({ user, onEdit, onDelete }: UserActionsMenuProps) {
+  const { isAdmin } = useAuth();
+  
+  // Only allow admins to perform these actions
+  if (!isAdmin()) {
+    return null;
+  }
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
