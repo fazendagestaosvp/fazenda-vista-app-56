@@ -96,7 +96,7 @@ export const useDocumentsOperations = ({ folderId, user }: DocumentsHookOptions)
   };
 
   // Função para excluir documento
-  const deleteDocument = async (documentId: string, filePath: string | null): Promise<void> => {
+  const deleteDocument = async ({ documentId, filePath }: { documentId: string, filePath: string | null }): Promise<void> => {
     if (!user) throw new Error("Usuário não autenticado");
 
     try {
@@ -108,6 +108,7 @@ export const useDocumentsOperations = ({ folderId, user }: DocumentsHookOptions)
 
         if (storageError) {
           console.error("Erro ao remover arquivo:", storageError);
+          // Não vamos interromper o fluxo aqui, pois ainda é possível remover o registro
         }
       }
 
@@ -119,18 +120,8 @@ export const useDocumentsOperations = ({ folderId, user }: DocumentsHookOptions)
 
       if (error) {
         console.error("Erro ao excluir documento:", error);
-        toast({
-          title: "Erro ao excluir documento",
-          description: error.message,
-          variant: "destructive",
-        });
         throw error;
       }
-
-      toast({
-        title: "Documento excluído com sucesso",
-        description: "O documento foi removido.",
-      });
     } catch (error) {
       console.error("Erro ao excluir documento:", error);
       throw error;
@@ -167,11 +158,19 @@ export const useDocumentsOperations = ({ folderId, user }: DocumentsHookOptions)
   const uploadDocumentMutation = useMutation({
     mutationFn: ({ file, folderId }: { file: File; folderId: string | null }) =>
       uploadDocument(file, folderId),
+    onSuccess: () => {
+      // Atualizar a lista de documentos após o upload
+      documentsQuery.refetch();
+    }
   });
 
   const deleteDocumentMutation = useMutation({
     mutationFn: ({ documentId, filePath }: { documentId: string; filePath: string | null }) =>
-      deleteDocument(documentId, filePath),
+      deleteDocument({ documentId, filePath }),
+    onSuccess: () => {
+      // Atualizar a lista de documentos após a exclusão
+      documentsQuery.refetch();
+    }
   });
 
   return {

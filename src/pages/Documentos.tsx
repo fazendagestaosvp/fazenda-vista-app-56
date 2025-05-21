@@ -27,7 +27,8 @@ const DocumentosPage = () => {
     isLoadingFolders, 
     isLoadingDocuments, 
     deleteDocument, 
-    getDownloadUrl 
+    getDownloadUrl,
+    refetchDocuments
   } = useDocuments(currentFolder);
   
   const { toast } = useToast();
@@ -72,9 +73,25 @@ const DocumentosPage = () => {
     }
   };
 
-  const handleDelete = (doc: DocumentType) => {
+  const handleDelete = async (doc: DocumentType) => {
     if (confirm(`Deseja realmente excluir o documento "${doc.name}"?`)) {
-      deleteDocument({ documentId: doc.id, filePath: doc.file_path });
+      try {
+        await deleteDocument({ documentId: doc.id, filePath: doc.file_path });
+        // Atualizar a lista de documentos após a exclusão
+        refetchDocuments();
+        
+        toast({
+          title: "Documento excluído",
+          description: `O documento "${doc.name}" foi removido com sucesso.`,
+        });
+      } catch (error) {
+        console.error("Erro ao excluir documento:", error);
+        toast({
+          title: "Erro ao excluir",
+          description: "Não foi possível excluir o documento.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
