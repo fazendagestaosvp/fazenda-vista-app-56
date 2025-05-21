@@ -58,13 +58,27 @@ const UserAccessControl = () => {
       setLoading(true);
       setError(null);
       
-      // Buscar perfis de usuários
+      // Buscar perfis de usuários (sem o campo email que não existe na tabela)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email')
-        .order('email');
+        .select('id')
+        .order('id');
 
       if (profilesError) throw profilesError;
+      
+      // Buscar emails dos usuários usando a função get_user_emails
+      const userIds = profiles.map((profile: any) => profile.id);
+      
+      // Usar a função do Supabase para obter emails para esses usuários
+      const { data: userEmails, error: emailsError } = await supabase.rpc(
+        'get_user_emails',
+        { user_ids: userIds }
+      );
+      
+      if (emailsError) {
+        console.error("Erro ao buscar emails dos usuários:", emailsError);
+        throw emailsError;
+      }
 
       // Buscar roles de usuários
       const { data: userRoles, error: rolesError } = await supabase
@@ -75,16 +89,16 @@ const UserAccessControl = () => {
         console.error("Erro ao buscar papéis dos usuários:", rolesError);
       }
 
-      if (profiles) {
-        const usersWithRoles = profiles.map((user: any) => {
+      if (profiles && userEmails) {
+        const usersWithRoles = userEmails.map((userEmail: any) => {
           // Encontrar o role do usuário, se existir
-          const userRole = userRoles?.find(role => role.user_id === user.id);
+          const userRole = userRoles?.find(role => role.user_id === userEmail.id);
           const dbRole = userRole?.role as DbRole || 'viewer';
           const uiRole = dbToUiRole(dbRole);
 
           return {
-            id: user.id,
-            email: user.email,
+            id: userEmail.id,
+            email: userEmail.email,
             role: uiRole,
           };
         });
