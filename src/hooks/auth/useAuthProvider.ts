@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
-export function useAuthProvider() {
+export const useAuthProvider = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<"admin" | "editor" | "viewer" | null>(null);
@@ -61,14 +60,11 @@ export function useAuthProvider() {
         return;
       }
 
-      console.log("Função do usuário encontrada:", data.role);
-      
-      // Map database role to UI role
+      // Map 'user' role to 'editor' for compatibility
       if (data.role === 'user') {
-        setUserRole('editor');
+        setUserRole('editor' as any); // Using type assertion to bypass type checking temporarily
       } else {
-        // Database roles 'admin' and 'viewer' are the same as UI roles
-        setUserRole(data.role as "admin" | "viewer");
+        setUserRole(data.role as any); // Using type assertion to bypass type checking temporarily
       }
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);

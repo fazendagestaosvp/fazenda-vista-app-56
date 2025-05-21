@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserCreateData {
@@ -324,4 +323,88 @@ export const fetchUsers = async () => {
       error: error.message || "Não foi possível carregar a lista de usuários" 
     };
   }
+};
+
+/**
+ * Busca o perfil de um usuário
+ * @param userId ID do usuário
+ * @returns Objeto com o perfil do usuário ou null se não encontrado
+ */
+export const getUserProfile = async (userId: string): Promise<Profile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    return data || null;
+  } catch (error: any) {
+    return null;
+  }
+};
+
+/**
+ * Atualiza o papel de um usuário
+ * @param userId ID do usuário
+ * @param role Novo papel do usuário
+ * @returns Objeto com status da operação
+ */
+export const updateUserRole = async (userId: string, role: "admin" | "editor" | "viewer"): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // Map 'editor' to 'user' for database compatibility if needed
+    const dbRole = role === 'editor' ? 'user' as any : role;
+
+    // Obter o token de acesso do usuário atual
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error("Sessão expirada. Por favor, faça login novamente.");
+    }
+    
+    // Verificar se o usuário atual é administrador
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .single();
+      
+    if (roleError || !roleData || roleData.role !== 'admin') {
+      throw new Error("Acesso negado. Apenas administradores podem atualizar usuários.");
+    }
+    
+    // Atualizar o papel
+    const { error: roleUpdateError } = await supabase
+      .from('user_roles')
+      .update({ role: dbRole })
+      .eq('user_id', userId);
+      
+    if (roleUpdateError) {
+      throw new Error(`Erro ao atualizar papel: ${roleUpdateError.message}`);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message || "Ocorreu um erro ao atualizar o papel do usuário" };
+  }
+};
+
+/**
+ * Verifica se um usuário pode acessar uma determinada funcionalidade
+ * @param userRole Papel do usuário
+ * @param requiredRole Papel necessário para acessar a funcionalidade
+ * @returns true se o usuário pode acessar, false caso contrário
+ */
+export const canAccessFeature = (userRole: string | null, requiredRole: "admin" | "editor" | "viewer"): boolean => {
+  if (!userRole) return false;
+
+  // Map 'user' role to 'editor' for permission checking
+  const normalizedUserRole = userRole === 'user' ? 'editor' : userRole;
+
+  // Verificar se o papel do usuário é igual ou superior ao papel necessário
+  return normalizedUserRole === requiredRole || normalizedUserRole === 'admin';
 };

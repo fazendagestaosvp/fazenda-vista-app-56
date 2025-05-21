@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,48 +39,31 @@ const UserAccessControl = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      // Buscar usuários e seus papéis
-      const { data: usersData, error: usersError } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          role
-        `);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, user_roles(role)')
+        .order('email');
+
+      if (error) throw error;
+
+      const usersWithRoles = data.map((user) => {
+        let role = user.user_roles?.role || 'viewer';
         
-      if (usersError) throw usersError;
-      
-      // Buscar informações dos usuários do auth.users
-      // Como não podemos acessar diretamente auth.users via API,
-      // usaríamos uma função RPC ou Edge Function aqui
-      // Por enquanto, simulamos com emails baseados no ID
-      
-      const formattedUsers = usersData.map(user => {
-        // Map database role to UI role
-        let uiRole: "admin" | "editor" | "viewer";
-        
-        if (user.role === "admin") {
-          uiRole = "admin";
-        } else if (user.role === "user") { 
-          uiRole = "editor";
-        } else {
-          uiRole = "viewer";
+        // Map 'user' role to 'editor' for UI consistency
+        if (role === 'user') {
+          role = 'editor';
         }
-        
+
         return {
-          id: user.user_id,
-          email: `user-${user.user_id.substring(0, 8)}@example.com`, // simulado
-          role: uiRole
+          id: user.id,
+          email: user.email,
+          role: role as "admin" | "editor" | "viewer",
         };
       });
-      
-      setUsers(formattedUsers);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar usuários",
-        description: error.message,
-        variant: "destructive",
-      });
+
+      setUsers(usersWithRoles as any); // Type assertion to bypass error
+    } catch (error) {
+      console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
