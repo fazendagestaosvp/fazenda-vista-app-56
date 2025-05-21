@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,11 +61,12 @@ export const useAuthProvider = () => {
         return;
       }
 
-      // Map 'user' role to 'editor' for compatibility
+      // Map 'user' role from database to 'editor' for UI
       if (data.role === 'user') {
-        setUserRole('editor' as any); // Using type assertion to bypass type checking temporarily
+        setUserRole('editor');
       } else {
-        setUserRole(data.role as any); // Using type assertion to bypass type checking temporarily
+        // Type assertion to handle role as the expected type
+        setUserRole(data.role as "admin" | "editor" | "viewer");
       }
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);

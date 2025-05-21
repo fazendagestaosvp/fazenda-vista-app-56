@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,22 +43,24 @@ const UserRoleManagement = () => {
 
       if (error) throw error;
 
-      const usersWithRoles = data.map((user) => {
-        let role = user.user_roles?.role || 'viewer';
-        
-        // Map 'user' role to 'editor' for UI consistency
-        if (role === 'user') {
-          role = 'editor';
-        }
+      if (data) {
+        const usersWithRoles = data.map((user: any) => {
+          // Map 'user' role from database to 'editor' for UI consistency
+          let role = user.user_roles?.role || 'viewer';
+          
+          if (role === 'user') {
+            role = 'editor';
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          role: role as "admin" | "editor" | "viewer",
-        };
-      });
+          return {
+            id: user.id,
+            email: user.email,
+            role: role as "admin" | "editor" | "viewer",
+          };
+        });
 
-      setUsers(usersWithRoles as any); // Type assertion to bypass error
+        setUsers(usersWithRoles);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {

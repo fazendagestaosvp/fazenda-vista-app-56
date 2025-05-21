@@ -408,3 +408,74 @@ export const canAccessFeature = (userRole: string | null, requiredRole: "admin" 
   // Verificar se o papel do usuário é igual ou superior ao papel necessário
   return normalizedUserRole === requiredRole || normalizedUserRole === 'admin';
 };
+
+/**
+ * Atualiza o papel de um usuário
+ * @param userId ID do usuário
+ * @param role Novo papel do usuário
+ * @returns Objeto com status da operação
+ */
+export const setUserRole = async (userId: string, role: "admin" | "editor" | "viewer") => {
+  try {
+    const dbRole = role === "editor" ? "user" : role;
+    
+    // Obter o token de acesso do usuário atual
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error("Sessão expirada. Por favor, faça login novamente.");
+    }
+    
+    // Verificar se o usuário atual é administrador
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .single();
+      
+    if (roleError || !roleData || roleData.role !== 'admin') {
+      throw new Error("Acesso negado. Apenas administradores podem atualizar usuários.");
+    }
+    
+    // Atualizar o papel
+    const { error: roleUpdateError } = await supabase
+      .from('user_roles')
+      .update({ role: dbRole })
+      .eq('user_id', userId);
+      
+    if (roleUpdateError) {
+      throw new Error(`Erro ao atualizar papel: ${roleUpdateError.message}`);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message || "Ocorreu um erro ao atualizar o papel do usuário" };
+  }
+};
+
+/**
+ * Busca o papel de um usuário
+ * @param userId ID do usuário
+ * @returns Papel do usuário ou null se não encontrado
+ */
+export const getUserRole = async (userId: string): Promise<"admin" | "editor" | "viewer" | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (data?.role === "user") {
+      return "editor";
+    }
+    
+    return data?.role as "admin" | "editor" | "viewer" | null;
+  } catch (error) {
+    return null;
+  }
+};

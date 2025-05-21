@@ -1,15 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
-import { Eye, Shield, UserIcon, Search, Filter } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Eye, Shield, User } from "lucide-react";
 
 type UserWithRole = {
   id: string;
@@ -20,8 +19,6 @@ type UserWithRole = {
 const UserAccessControl = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
   const { toast } = useToast();
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -46,22 +43,24 @@ const UserAccessControl = () => {
 
       if (error) throw error;
 
-      const usersWithRoles = data.map((user) => {
-        let role = user.user_roles?.role || 'viewer';
-        
-        // Map 'user' role to 'editor' for UI consistency
-        if (role === 'user') {
-          role = 'editor';
-        }
+      if (data) {
+        const usersWithRoles = data.map((user: any) => {
+          // Map 'user' role from database to 'editor' for UI consistency
+          let role = user.user_roles?.role || 'viewer';
+          
+          if (role === 'user') {
+            role = 'editor';
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          role: role as "admin" | "editor" | "viewer",
-        };
-      });
+          return {
+            id: user.id,
+            email: user.email,
+            role: role as "admin" | "editor" | "viewer",
+          };
+        });
 
-      setUsers(usersWithRoles as any); // Type assertion to bypass error
+        setUsers(usersWithRoles);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -69,23 +68,14 @@ const UserAccessControl = () => {
     }
   };
   
-  // Filtrar usuários baseado na pesquisa e filtro de papel
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
-  
   const getRoleBadge = (role: string) => {
     switch(role) {
       case 'admin':
-        return <Badge className="bg-red-500">Administrador</Badge>;
-      case 'editor':
-        return <Badge className="bg-green-500">Editor</Badge>;
+        return <Badge className="bg-red-500">Admin</Badge>;
       case 'viewer':
         return <Badge className="bg-blue-500">Visualizador</Badge>;
       default:
-        return <Badge>Desconhecido</Badge>;
+        return <Badge>Usuário</Badge>;
     }
   };
   
@@ -93,27 +83,62 @@ const UserAccessControl = () => {
     switch(role) {
       case 'admin':
         return <Shield className="h-4 w-4 mr-1" />;
-      case 'editor':
-        return <UserIcon className="h-4 w-4 mr-1" />;
       case 'viewer':
         return <Eye className="h-4 w-4 mr-1" />;
       default:
-        return <UserIcon className="h-4 w-4 mr-1" />;
+        return <User className="h-4 w-4 mr-1" />;
+    }
+  };
+  
+  // Function to promote a user to editor
+  const promoteToEditor = async (userId: string) => {
+    try {
+      // In database, 'editor' is stored as 'user'
+      await supabase.rpc('promote_to_editor', { email: users.find(u => u.id === userId)?.email });
+      toast({
+        title: "Usuário promovido",
+        description: "O usuário foi promovido a Editor com sucesso."
+      });
+      fetchUsers(); // Refresh user list
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao promover usuário",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Function to promote a user to viewer
+  const demoteToViewer = async (userId: string) => {
+    try {
+      await supabase.rpc('promote_to_viewer', { email: users.find(u => u.id === userId)?.email });
+      toast({
+        title: "Usuário alterado",
+        description: "O usuário foi configurado como Visualizador com sucesso."
+      });
+      fetchUsers(); // Refresh user list
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao alterar usuário",
+        variant: "destructive"
+      });
     }
   };
   
   return (
     <div>
-      <h2 className="text-3xl font-bold tracking-tight mb-4">Controle de Acesso de Usuários</h2>
+      <h2 className="text-3xl font-bold tracking-tight mb-4">Controle de Acesso</h2>
       <p className="text-muted-foreground mb-6">
-        Gerencie os papéis e permissões dos usuários no sistema.
+        Gerencie os níveis de acesso dos usuários no sistema.
       </p>
       
       <Card>
         <CardHeader>
           <CardTitle>Usuários e Permissões</CardTitle>
           <CardDescription>
-            Lista de todos os usuários e seus respectivos papéis no sistema.
+            Promova ou rebaixe usuários entre os níveis Editor e Visualizador
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,104 +147,55 @@ const UserAccessControl = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-farm"></div>
             </div>
           ) : (
-            <>
-              <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  <Input
-                    placeholder="Buscar por email..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="w-full md:w-64">
-                  <Select 
-                    value={roleFilter} 
-                    onValueChange={setRoleFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <div className="flex items-center">
-                        <Filter className="mr-2 h-4 w-4" />
-                        <SelectValue placeholder="Filtrar por papel" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os papéis</SelectItem>
-                      <SelectItem value="admin">Administradores</SelectItem>
-                      <SelectItem value="user">Editores</SelectItem>
-                      <SelectItem value="viewer">Visualizadores</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap justify-between mb-4 gap-2">
-                <div className="space-x-2">
-                  <Button variant="outline" onClick={fetchUsers} className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Atualizar
-                  </Button>
-                </div>
-                <div className="space-x-2">
-                  <Button variant="outline" onClick={() => navigate('/admin/promote')} className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700">
-                    Promover Admin
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate('/admin/promote-editor')} className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700">
-                    Promover Editor
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate('/admin/promote-viewer')} className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700">
-                    Promover Visualizador
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Papel</TableHead>
-                      <TableHead>Permissões</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Papel</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.length > 0 ? (
+                  users.filter(user => user.role !== 'admin').map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {getRoleIcon(user.role)}
+                          {getRoleBadge(user.role)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.role === 'editor' ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => demoteToViewer(user.id)}
+                          >
+                            Rebaixar para Visualizador
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => promoteToEditor(user.id)}
+                          >
+                            Promover para Editor
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.email}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              {getRoleIcon(user.role)}
-                              {getRoleBadge(user.role)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {user.role === 'admin' ? (
-                              <span className="text-sm text-muted-foreground">Acesso total ao sistema</span>
-                            ) : user.role === 'user' ? (
-                              <span className="text-sm text-muted-foreground">Pode editar e gerenciar dados</span>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Apenas visualização</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
-                          {searchTerm || roleFilter !== "all" 
-                            ? "Nenhum usuário encontrado com os critérios de busca" 
-                            : "Nenhum usuário cadastrado"}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center">
+                      Nenhum usuário encontrado
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
