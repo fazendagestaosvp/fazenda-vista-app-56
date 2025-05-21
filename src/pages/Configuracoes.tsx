@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { Shield, Eye, Users, UserCog } from "lucide-react";
+import { Shield, Eye, Users, UserCog, User } from "lucide-react";
 
 const Configuracoes = () => {
   const { isAdmin } = useAuth();

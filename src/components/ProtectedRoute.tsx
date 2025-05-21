@@ -1,10 +1,10 @@
 
 import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthContext";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
   adminOnly?: boolean;
   noViewers?: boolean;
   editorsOnly?: boolean;
@@ -48,7 +48,8 @@ const ProtectedRoute = ({
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  // Use children if provided, otherwise use Outlet for nested routes
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;
