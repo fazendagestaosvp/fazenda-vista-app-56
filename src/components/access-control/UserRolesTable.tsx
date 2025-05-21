@@ -26,14 +26,14 @@ const UserRolesTable = ({ users, loading, onRoleChange }: UserRolesTableProps) =
         <TableRow>
           <TableHead>Email</TableHead>
           <TableHead>Papel</TableHead>
-          <TableHead>Ações</TableHead>
+          <TableHead className="w-[350px]">Ações</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {users.length > 0 ? (
           users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>{user.email}</TableCell>
+              <TableCell className="font-medium">{user.email}</TableCell>
               <TableCell>
                 <UserRoleBadge role={user.role} />
               </TableCell>

@@ -8,38 +8,36 @@ type UserRoleBadgeProps = {
 };
 
 const UserRoleBadge = ({ role }: UserRoleBadgeProps) => {
-  const getRoleBadge = (role: string) => {
-    switch(role) {
-      case 'admin':
-        return <Badge className="bg-red-500">Administrador</Badge>;
-      case 'editor':
-        return <Badge className="bg-green-500">Editor</Badge>;
-      case 'viewer':
-        return <Badge className="bg-blue-500">Visualizador</Badge>;
-      default:
-        return <Badge>Usuário</Badge>;
-    }
-  };
-  
-  const getRoleIcon = (role: string) => {
-    switch(role) {
-      case 'admin':
-        return <Shield className="h-4 w-4 mr-1" />;
-      case 'editor':
-        return <User className="h-4 w-4 mr-1" />;
-      case 'viewer':
-        return <Eye className="h-4 w-4 mr-1" />;
-      default:
-        return <User className="h-4 w-4 mr-1" />;
-    }
-  };
-
-  return (
-    <div className="flex items-center">
-      {getRoleIcon(role)}
-      {getRoleBadge(role)}
-    </div>
-  );
+  switch(role) {
+    case 'admin':
+      return (
+        <Badge className="bg-red-500 hover:bg-red-600 flex items-center gap-1">
+          <Shield className="h-3 w-3" />
+          Administrador
+        </Badge>
+      );
+    case 'editor':
+      return (
+        <Badge className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
+          <User className="h-3 w-3" />
+          Editor
+        </Badge>
+      );
+    case 'viewer':
+      return (
+        <Badge className="bg-blue-500 hover:bg-blue-600 flex items-center gap-1">
+          <Eye className="h-3 w-3" />
+          Visualizador
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="flex items-center gap-1">
+          <User className="h-3 w-3" />
+          Usuário
+        </Badge>
+      );
+  }
 };
 
 export default UserRoleBadge;
