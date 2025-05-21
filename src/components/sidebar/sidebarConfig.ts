@@ -10,7 +10,7 @@ import {
   Activity, 
   Baby, 
   UsersIcon, 
-  UserCog 
+  UserCog
 } from "lucide-react";
 
 export type SidebarLinkType = {
