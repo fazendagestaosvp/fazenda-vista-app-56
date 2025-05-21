@@ -1,11 +1,13 @@
+
 // Update import paths to use the refactored services
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UiRole } from "@/types/user.types";
 import { getCurrentUser, getSessionUser } from "@/services/user";
+import { Session } from "@supabase/supabase-js";
 
 export const useAuthProvider = () => {
-  const [session, setSession] = useState(supabase.auth.getSession());
+  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState<UiRole | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,16 +18,18 @@ export const useAuthProvider = () => {
       if (error) {
         console.error("Erro ao obter sessão:", error);
       } else {
-        setSession(data);
+        setSession(data.session);
       }
     };
 
     fetchSession();
 
-    supabase.auth.onAuthStateChange((event, session) => {
-      setSession({ session });
-      setUser(session?.user || null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user || null);
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

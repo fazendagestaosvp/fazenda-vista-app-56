@@ -1,7 +1,5 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,26 +50,21 @@ const ResetPassword = () => {
     setLoading(true);
     
     try {
-      const { error } = await updateUserPassword(newPassword);
+      const result = await updateUserPassword(newPassword);
       
-      if (error) {
-        setError(error.message);
-        toast({
-          title: "Erro ao redefinir senha",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Senha redefinida com sucesso",
-          description: "Sua senha foi atualizada. Você será redirecionado para a página de login."
-        });
-        
-        // Redirecionar para a página de login após um pequeno delay
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+      if (!result?.user) {
+        throw new Error("Não foi possível atualizar a senha");
       }
+      
+      toast({
+        title: "Senha redefinida com sucesso",
+        description: "Sua senha foi atualizada. Você será redirecionado para a página de login."
+      });
+      
+      // Redirecionar para a página de login após um pequeno delay
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (error: any) {
       setError(error.message || "Ocorreu um erro ao redefinir sua senha");
       toast({

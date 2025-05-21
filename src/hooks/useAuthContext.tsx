@@ -4,6 +4,7 @@ import { useAuthProvider } from "./auth/useAuthProvider";
 import { useAuthMethods } from "./auth/useAuthMethods";
 import { useRoleChecks } from "./auth/useRoleChecks";
 import { AuthContextType } from "./auth/types";
+import { Session } from "@supabase/supabase-js";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider
       value={{
-        session,
+        session: session as Session,
         user,
         userRole,
         loading,

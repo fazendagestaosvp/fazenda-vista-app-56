@@ -1,3 +1,4 @@
+
 // Update import paths to use the refactored services
 import { resetUserPassword, signInUser, signOutUser, signUpUser } from "@/services/user";
 import { initUserProfile } from "@/services/user";
@@ -15,26 +16,24 @@ export const useAuthMethods = () => {
     onError?: (message: string) => void
   ) => {
     try {
-      const { data, error } = await signInUser({ email, password });
+      const result = await signInUser({ email, password });
 
-      if (error) {
-        console.error("Erro ao autenticar:", error);
-        toast({
-          title: "Erro ao autenticar",
-          description: "Verifique suas credenciais.",
-          variant: "destructive",
-        });
-        onError?.(error.message);
-        return;
-      }
-
-      if (data?.user) {
+      if (result.session) {
         toast({
           title: "Login realizado",
           description: "Login realizado com sucesso!",
         });
         onSuccess?.();
+        return;
       }
+
+      // If we reach here without a session, there was an error
+      toast({
+        title: "Erro ao autenticar",
+        description: "Verifique suas credenciais.",
+        variant: "destructive",
+      });
+      onError?.("Credenciais inválidas");
     } catch (error: any) {
       console.error("Erro durante o login:", error);
       toast({
@@ -48,22 +47,12 @@ export const useAuthMethods = () => {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { data, error } = await signUpUser(email, password);
+      const result = await signUpUser(email, password);
 
-      if (error) {
-        console.error("Erro ao registrar:", error);
-        toast({
-          title: "Erro ao registrar",
-          description: "Tente novamente ou entre em contato com o suporte.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data?.user) {
+      if (result?.user) {
         // Initialize user profile after successful signup
         await initUserProfile({
-          userId: data.user.id,
+          userId: result.user.id,
           fullName: fullName,
         });
 
@@ -72,7 +61,14 @@ export const useAuthMethods = () => {
           description: "Confirme seu email para ativar a conta!",
         });
         navigate("/login");
+        return;
       }
+
+      toast({
+        title: "Erro ao registrar",
+        description: "Tente novamente ou entre em contato com o suporte.",
+        variant: "destructive",
+      });
     } catch (error: any) {
       console.error("Erro durante o registro:", error);
       toast({
@@ -85,23 +81,22 @@ export const useAuthMethods = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await signOutUser();
+      const result = await signOutUser();
 
-      if (error) {
-        console.error("Erro ao sair:", error);
+      if (result.success) {
         toast({
-          title: "Erro ao sair",
-          description: "Não foi possível sair da sua conta.",
-          variant: "destructive",
+          title: "Você saiu da sua conta",
+          description: "Logout realizado com sucesso!",
         });
+        navigate("/login");
         return;
       }
 
       toast({
-        title: "Você saiu da sua conta",
-        description: "Logout realizado com sucesso!",
+        title: "Erro ao sair",
+        description: "Não foi possível sair da sua conta.",
+        variant: "destructive",
       });
-      navigate("/login");
     } catch (error: any) {
       console.error("Erro durante o logout:", error);
       toast({
@@ -114,22 +109,22 @@ export const useAuthMethods = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await resetUserPassword({ email });
-
-      if (error) {
-        console.error("Erro ao solicitar redefinição de senha:", error);
+      const result = await resetUserPassword({ email });
+      
+      if (!result.error) {
         toast({
-          title: "Erro ao redefinir senha",
-          description: "Não foi possível solicitar a redefinição de senha.",
-          variant: "destructive",
+          title: "Redefinição de senha solicitada",
+          description: "Verifique seu email para continuar!",
         });
-        return;
+        return { success: true, message: "Email de redefinição enviado com sucesso." };
       }
 
       toast({
-        title: "Redefinição de senha solicitada",
-        description: "Verifique seu email para continuar!",
+        title: "Erro ao redefinir senha",
+        description: "Não foi possível solicitar a redefinição de senha.",
+        variant: "destructive",
       });
+      return { success: false, message: "Erro ao enviar email de redefinição." };
     } catch (error: any) {
       console.error("Erro ao solicitar redefinição de senha:", error);
       toast({
@@ -138,6 +133,7 @@ export const useAuthMethods = () => {
           error.message || "Ocorreu um erro ao solicitar a redefinição.",
         variant: "destructive",
       });
+      return { success: false, message: error.message || "Erro ao solicitar redefinição." };
     }
   };
 

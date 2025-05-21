@@ -1,32 +1,14 @@
 
-import { Profile, DbRole, UiRole } from "@/types/user.types";
-import { VerifyOtpParams } from "@supabase/supabase-js";
+// Import necessary types
+import { User } from "@supabase/supabase-js";
 
-export interface CreateUserProps {
-  email: string;
-  password?: string;
+// General service response type
+export interface ServiceResponse {
+  success: boolean;
+  error?: string;
 }
 
-export interface UpdateUserAdminProps {
-  userId: string;
-  email?: string;
-  password?: string;
-  role?: DbRole;
-  user_metadata?: { [key: string]: any };
-}
-
-export interface UpdateUserProps {
-  userId: string;
-  fullName?: string;
-  role?: UiRole;
-}
-
-export interface InitProfileProps {
-  userId: string;
-  fullName: string;
-  avatarUrl?: string | null;
-}
-
+// Authentication related types
 export interface SignInProps {
   email: string;
   password: string;
@@ -36,21 +18,29 @@ export interface ResetPasswordProps {
   email: string;
 }
 
-export interface VerifyEmailProps {
-  email: string;
-  token: string;
+export interface SignUpResponse {
+  user: User | null;
+  session?: any;
 }
 
-export interface ServiceResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
+// User profile types
+export interface UserProfile {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+  bio?: string;
 }
 
-export interface UserWithProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: UiRole;
-  created_at: string;
+export interface CreateProfileProps {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+  bio?: string;
+}
+
+export interface UpdateProfileProps {
+  userId: string;
+  fullName?: string;
+  avatarUrl?: string;
+  bio?: string;
 }
