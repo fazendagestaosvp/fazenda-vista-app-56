@@ -71,9 +71,14 @@ export function useCattle() {
       animal.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddCattleSuccess = () => {
+  const handleAddCattleSuccess = (newAnimal: any) => {
+    // Adiciona o novo animal à lista de gado
+    setCattle(prevCattle => [...prevCattle, newAnimal]);
     setIsAddDialogOpen(false);
-    // In a real application, we would refresh the cattle list here
+    toast({
+      title: "Animal adicionado",
+      description: `O animal ${newAnimal.name} foi adicionado com sucesso.`
+    });
   };
 
   const handleViewCattle = (animal: any) => {
