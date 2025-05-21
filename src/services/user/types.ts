@@ -44,3 +44,28 @@ export interface UpdateProfileProps {
   avatarUrl?: string;
   bio?: string;
 }
+
+// User management types
+export interface UpdateUserProps {
+  userId: string;
+  email?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateUserAdminProps {
+  userId: string;
+  role: string;
+}
+
+// Interface for user with profile information
+export interface UserWithProfile extends User {
+  profile?: UserProfile;
+  role?: string;
+}
+
+export interface InitProfileProps {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+  bio?: string;
+}
