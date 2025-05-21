@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { dbToUiRole, uiToDbRole, UiRole } from "@/types/user.types";
+import { DbRole, dbToUiRole, uiToDbRole, UiRole } from "@/types/user.types";
 import { ServiceResponse, SignInProps, ResetPasswordProps, VerifyEmailProps } from "./types";
 import { VerifyOtpParams } from "@supabase/supabase-js";
 import { getUserProfile } from "./profileService";
