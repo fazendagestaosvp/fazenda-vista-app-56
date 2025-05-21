@@ -21,14 +21,11 @@ import GestaoCavalos from "./pages/GestaoCavalos";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import AdminPromote from "./pages/AdminPromote";
-<<<<<<< HEAD
 import UserManagement from "./pages/UserManagement";
-=======
 import AdminPromoteViewer from "./pages/AdminPromoteViewer";
 import AdminPromoteEditor from "./pages/AdminPromoteEditor";
 import UserRoleManagement from "./pages/UserRoleManagement";
 import UserAccessControl from "./pages/UserAccessControl";
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -69,12 +66,14 @@ function App() {
               } 
             />
             <Route 
-<<<<<<< HEAD
               path="admin/usuarios" 
               element={
                 <ProtectedRoute adminOnly={true}>
                   <UserManagement />
-=======
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="admin/promote-editor" 
               element={
                 <ProtectedRoute adminOnly={true}>
@@ -103,7 +102,6 @@ function App() {
               element={
                 <ProtectedRoute adminOnly={true}>
                   <UserAccessControl />
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
                 </ProtectedRoute>
               } 
             />
