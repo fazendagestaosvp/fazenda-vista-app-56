@@ -88,6 +88,11 @@ const Configuracoes = () => {
                     Gerenciamento de Usuários
                   </Button>
                 </Link>
+                <Link to="/admin/access-control">
+                  <Button className="w-full bg-farm hover:bg-farm-dark mb-2">
+                    Controle de Acesso
+                  </Button>
+                </Link>
                 <Link to="/admin/promote">
                   <Button className="w-full bg-farm-light hover:bg-farm mb-2">
                     Promover Administrador

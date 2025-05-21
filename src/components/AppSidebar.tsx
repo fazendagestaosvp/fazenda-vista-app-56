@@ -61,7 +61,8 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   ];
   
   const adminLinks = [
-    { icon: UsersIcon, label: "Usuários", to: "/admin/users" }
+    { icon: UsersIcon, label: "Usuários", to: "/admin/users" },
+    { icon: Users, label: "Controle de Acesso", to: "/admin/access-control" }
   ];
 
   return (

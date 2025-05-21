@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +24,12 @@ const UserAccessControl = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect if not admin
-  if (!isAdmin()) {
-    navigate("/dashboard");
-    return null;
-  }
+  // Verificar se é admin e redirecionar se não for
+  useEffect(() => {
+    if (!isAdmin()) {
+      navigate("/dashboard");
+    }
+  }, [isAdmin, navigate]);
   
   useEffect(() => {
     fetchUsers();
@@ -68,7 +70,9 @@ const UserAccessControl = () => {
   const getRoleBadge = (role: string) => {
     switch(role) {
       case 'admin':
-        return <Badge className="bg-red-500">Admin</Badge>;
+        return <Badge className="bg-red-500">Administrador</Badge>;
+      case 'editor':
+        return <Badge className="bg-green-500">Editor</Badge>;
       case 'viewer':
         return <Badge className="bg-blue-500">Visualizador</Badge>;
       default:
@@ -80,6 +84,8 @@ const UserAccessControl = () => {
     switch(role) {
       case 'admin':
         return <Shield className="h-4 w-4 mr-1" />;
+      case 'editor':
+        return <User className="h-4 w-4 mr-1" />;
       case 'viewer':
         return <Eye className="h-4 w-4 mr-1" />;
       default:
@@ -87,7 +93,25 @@ const UserAccessControl = () => {
     }
   };
   
-  // Function to promote a user to editor
+  // Function to promote a user to admin
+  const promoteToAdmin = async (userId: string) => {
+    try {
+      await supabase.rpc('promote_to_admin', { email: users.find(u => u.id === userId)?.email });
+      toast({
+        title: "Usuário promovido",
+        description: "O usuário foi promovido a Administrador com sucesso."
+      });
+      fetchUsers(); // Refresh user list
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao promover usuário",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Function to promote a user to editor (common user)
   const promoteToEditor = async (userId: string) => {
     try {
       // In database, 'editor' is stored as 'user'
@@ -107,7 +131,7 @@ const UserAccessControl = () => {
   };
   
   // Function to promote a user to viewer
-  const demoteToViewer = async (userId: string) => {
+  const promoteToViewer = async (userId: string) => {
     try {
       await supabase.rpc('promote_to_viewer', { email: users.find(u => u.id === userId)?.email });
       toast({
@@ -135,7 +159,7 @@ const UserAccessControl = () => {
         <CardHeader>
           <CardTitle>Usuários e Permissões</CardTitle>
           <CardDescription>
-            Promova ou rebaixe usuários entre os níveis Editor e Visualizador
+            Promova ou altere o nível de acesso dos usuários no sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -154,7 +178,7 @@ const UserAccessControl = () => {
               </TableHeader>
               <TableBody>
                 {users.length > 0 ? (
-                  users.filter(user => user.role !== 'admin').map((user) => (
+                  users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
@@ -163,22 +187,35 @@ const UserAccessControl = () => {
                           {getRoleBadge(user.role)}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {user.role === 'editor' ? (
+                      <TableCell className="space-x-2">
+                        {user.role !== 'admin' && (
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => demoteToViewer(user.id)}
+                            onClick={() => promoteToAdmin(user.id)}
+                            className="bg-red-100 hover:bg-red-200 mr-1"
                           >
-                            Rebaixar para Visualizador
+                            Administrador
                           </Button>
-                        ) : (
+                        )}
+                        {user.role !== 'editor' && (
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => promoteToEditor(user.id)}
+                            className="bg-green-100 hover:bg-green-200 mr-1"
                           >
-                            Promover para Editor
+                            Editor
+                          </Button>
+                        )}
+                        {user.role !== 'viewer' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => promoteToViewer(user.id)}
+                            className="bg-blue-100 hover:bg-blue-200"
+                          >
+                            Visualizador
                           </Button>
                         )}
                       </TableCell>
