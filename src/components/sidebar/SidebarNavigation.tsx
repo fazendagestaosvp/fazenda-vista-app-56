@@ -17,7 +17,9 @@ const SidebarNavigation = ({ isSidebarOpen }: SidebarNavigationProps) => {
   const [hoverItem, setHoverItem] = useState<string | null>(null);
   const { userRole } = useAuth();
   
-  // Get sidebar sections filtered by user role
+  console.log("UserRole atual no SidebarNavigation:", userRole);
+  
+  // Obter seções da barra lateral filtradas pelo papel do usuário
   const sidebarSections = getSidebarSectionsByRole(userRole);
 
   return (
@@ -25,7 +27,7 @@ const SidebarNavigation = ({ isSidebarOpen }: SidebarNavigationProps) => {
       <nav className={cn("space-y-1", !isSidebarOpen ? "px-1" : "px-2")}>
         {sidebarSections.map((section, sectionIndex) => (
           <div key={`section-${sectionIndex}`} className="mb-4">
-            {/* Only show section title if it exists and sidebar is open */}
+            {/* Exibir título da seção somente se existir e a barra lateral estiver aberta */}
             {section.title && isSidebarOpen && (
               <div className="px-3 pt-4 pb-2">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">

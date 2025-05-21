@@ -25,10 +25,12 @@ interface UserActionsMenuProps {
 }
 
 export default function UserActionsMenu({ user, onEdit, onDelete }: UserActionsMenuProps) {
-  const { isAdmin } = useAuth();
+  const { userRole } = useAuth();
   
-  // Only allow admins to perform these actions
-  if (!isAdmin()) {
+  console.log("UserRole em UserActionsMenu:", userRole);
+  
+  // Apenas permita admins a realizar essas ações
+  if (userRole !== "admin") {
     return null;
   }
   

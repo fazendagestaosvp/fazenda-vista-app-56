@@ -8,10 +8,13 @@ interface UserTableHeaderProps {
 }
 
 export default function UserTableHeader({ onAddUser }: UserTableHeaderProps) {
-  const { isAdmin } = useAuth();
+  const { userRole } = useAuth();
   
-  // Only show add user button for admins
-  if (!isAdmin()) {
+  // Verificação direta do papel do usuário para depuração
+  console.log("UserRole em UserTableHeader:", userRole);
+  
+  // Apenas mostre o botão de adicionar usuário para admins
+  if (userRole !== "admin") {
     return <div className="mb-4"></div>;
   }
   
