@@ -54,6 +54,85 @@ export type Database = {
         }
         Relationships: []
       }
+      document_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          file_size: string | null
+          file_type: string | null
+          folder_id: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          file_size?: string | null
+          file_type?: string | null
+          folder_id?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          file_size?: string | null
+          file_type?: string | null
+          folder_id?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -112,6 +191,14 @@ export type Database = {
         Returns: boolean
       }
       promote_to_admin: {
+        Args: { email: string }
+        Returns: undefined
+      }
+      promote_to_editor: {
+        Args: { email: string }
+        Returns: undefined
+      }
+      promote_to_viewer: {
         Args: { email: string }
         Returns: undefined
       }

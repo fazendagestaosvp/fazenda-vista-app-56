@@ -23,6 +23,17 @@ const UserProfileMenu = () => {
     return email.substring(0, 2).toUpperCase();
   };
 
+  const getUserRoleLabel = () => {
+    switch (userRole) {
+      case "admin":
+        return "Administrador";
+      case "viewer":
+        return "Visualizador";
+      default:
+        return "Usuário";
+    }
+  };
+
   return (
     <div className="flex items-center gap-2 p-2">
       <DropdownMenu>
@@ -38,7 +49,7 @@ const UserProfileMenu = () => {
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{user.email}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                {userRole === "admin" ? "Administrador" : "Usuário"}
+                {getUserRoleLabel()}
               </p>
             </div>
           </DropdownMenuLabel>

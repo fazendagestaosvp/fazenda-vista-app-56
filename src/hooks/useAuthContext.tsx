@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,43 +27,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<"admin" | "editor" | "viewer" | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+=======
 
-  // Inicializar a sessão e configurar o listener de mudanças de autenticação
-  useEffect(() => {
-    // Configurar o listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Buscar a função do usuário quando houver uma sessão
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
-        } else {
-          setUserRole(null);
-        }
-      }
-    );
+import React, { createContext, useContext, ReactNode } from "react";
+import { useAuthProvider } from "./auth/useAuthProvider";
+import { useAuthMethods } from "./auth/useAuthMethods";
+import { useRoleChecks } from "./auth/useRoleChecks";
+import { AuthContextType } from "./auth/types";
 
-    // Verificar se já existe uma sessão
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      }
-      setLoading(false);
-    });
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-    return () => subscription.unsubscribe();
-  }, []);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { 
+    session, 
+    user, 
+    userRole, 
+    loading, 
+    setLoading 
+  } = useAuthProvider();
+  
+  const { 
+    signIn, 
+    signUp, 
+    signOut 
+  } = useAuthMethods();
+  
+  const { 
+    isAdmin, 
+    isViewer,
+    isEditor 
+  } = useRoleChecks(userRole);
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 
-  // Função para buscar a função do usuário (admin ou user)
-  const fetchUserRole = async (userId: string) => {
+  // Wrap the signIn function to set loading
+  const wrappedSignIn = async (
+    email: string, 
+    password: string, 
+    onSuccess?: () => void, 
+    onError?: (message: string) => void
+  ) => {
+    setLoading(true);
     try {
+<<<<<<< HEAD
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -118,49 +124,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message || "Ocorreu um erro durante o login",
         variant: "destructive"
       });
+=======
+      await signIn(email, password, onSuccess, onError);
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
     } finally {
       setLoading(false);
     }
   };
 
-  // Registro de novo usuário
-  const signUp = async (email: string, password: string, fullName: string) => {
+  // Wrap the signUp function to set loading
+  const wrappedSignUp = async (email: string, password: string, fullName: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName
-          }
-        }
-      });
-
-      if (error) {
-        toast({
-          title: "Erro ao criar conta",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      toast({
-        title: "Cadastro realizado com sucesso",
-        description: "Sua conta foi criada. Faça login para continuar."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro durante o cadastro",
-        variant: "destructive"
-      });
+      await signUp(email, password, fullName);
     } finally {
       setLoading(false);
     }
   };
 
+<<<<<<< HEAD
   // Logout
   const signOut = async () => {
     try {
@@ -221,6 +203,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+=======
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
   return (
     <AuthContext.Provider
       value={{
@@ -228,14 +212,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         userRole,
         loading,
-        signIn,
-        signUp,
+        signIn: wrappedSignIn,
+        signUp: wrappedSignUp,
         signOut,
+<<<<<<< HEAD
         resetPassword,
         isAdmin,
         isEditor,
         isViewer,
         canEdit
+=======
+        isAdmin,
+        isViewer,
+        isEditor
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
       }}
     >
       {children}

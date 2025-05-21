@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UserCog, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthContext";
@@ -7,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+=======
+import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UsersIcon } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuthContext";
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 
 type SidebarLinkProps = {
   icon: React.ElementType;
@@ -44,8 +53,12 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const [hoverItem, setHoverItem] = useState<string | null>(null);
+<<<<<<< HEAD
   const { isAdmin, signOut } = useAuth();
   const { toast } = useToast();
+=======
+  const { isAdmin } = useAuth();
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 
   // Links básicos disponíveis para todos os usuários
   const baseLinks = [
@@ -60,6 +73,7 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
     { icon: Settings, label: "Configurações", to: "/configuracoes" },
   ];
   
+<<<<<<< HEAD
   // Links adicionais apenas para administradores
   const adminLinks = [
     { icon: UserCog, label: "Gerenciar Usuários", to: "/admin/usuarios" },
@@ -67,6 +81,12 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   
   // Combinar os links com base no papel do usuário
   const sidebarLinks = isAdmin() ? [...baseLinks, ...adminLinks] : baseLinks;
+=======
+  // Links administrativos - somente visíveis para administradores
+  const adminLinks = [
+    { icon: UsersIcon, label: "Controle de Acesso", to: "/admin/access-control" }
+  ];
+>>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 
   return (
     <div 
@@ -127,6 +147,44 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
                 )}
               </div>
             ))}
+            
+            {/* Admin links - only visible for admins */}
+            {isAdmin() && (
+              <>
+                {isSidebarOpen && (
+                  <div className="pt-4 pb-2">
+                    <div className="px-3">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Administração
+                      </h3>
+                    </div>
+                  </div>
+                )}
+                
+                {adminLinks.map((link) => (
+                  <div 
+                    key={link.to}
+                    onMouseEnter={() => !isSidebarOpen && setHoverItem(link.to)}
+                    onMouseLeave={() => setHoverItem(null)}
+                    className="relative"
+                  >
+                    <SidebarLink
+                      icon={link.icon}
+                      label={link.label}
+                      to={link.to}
+                      isActive={currentPath.startsWith(link.to)}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                    {/* Tooltip for collapsed sidebar */}
+                    {!isSidebarOpen && hoverItem === link.to && (
+                      <div className="absolute top-0 left-full ml-2 z-50 px-3 py-1 bg-card text-foreground rounded-md shadow-md whitespace-nowrap">
+                        {link.label}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
           </nav>
         </div>
 
