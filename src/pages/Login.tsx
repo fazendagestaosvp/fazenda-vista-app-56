@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,86 +9,79 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuthContext";
 import { AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
 const Login = () => {
   // Estados para o formulário de login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  
+
   // Estados para o formulário de registro
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  
+
   // Estado para mostrar erros de validação
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
-
   const navigate = useNavigate();
-  const { signIn, signUp, loading } = useAuth();
-  const { toast } = useToast();
-
+  const {
+    signIn,
+    signUp,
+    loading
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
-
     try {
       console.log("Tentando login com:", email);
-      await signIn(email, password, 
-        // Função de sucesso
-        () => {
-          console.log("Login bem-sucedido, redirecionando para dashboard");
-          navigate('/dashboard');
-        },
-        // Função de erro
-        (errorMessage: string) => {
-          console.error("Erro ao fazer login:", errorMessage);
-          setLoginError(errorMessage);
-        }
-      );
+      await signIn(email, password,
+      // Função de sucesso
+      () => {
+        console.log("Login bem-sucedido, redirecionando para dashboard");
+        navigate('/dashboard');
+      },
+      // Função de erro
+      (errorMessage: string) => {
+        console.error("Erro ao fazer login:", errorMessage);
+        setLoginError(errorMessage);
+      });
     } catch (error: any) {
       console.error("Erro capturado no componente Login:", error);
       setLoginError(error.message || "Ocorreu um erro durante o login");
     }
   };
-
   const validateRegistration = (): boolean => {
     if (!fullName.trim()) {
       setRegisterError("Nome completo é obrigatório");
       return false;
     }
-    
     if (!registerEmail.trim()) {
       setRegisterError("Email é obrigatório");
       return false;
     }
-    
     if (registerPassword.length < 6) {
       setRegisterError("A senha deve ter no mínimo 6 caracteres");
       return false;
     }
-    
     if (registerPassword !== confirmPassword) {
       setRegisterError("As senhas não conferem");
       return false;
     }
-    
     setRegisterError(null);
     return true;
   };
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateRegistration()) {
       return;
     }
-    
     try {
       await signUp(registerEmail, registerPassword, fullName);
-      
+
       // Limpar os campos após o registro
       setRegisterEmail("");
       setRegisterPassword("");
@@ -101,18 +93,15 @@ const Login = () => {
       if (loginTab instanceof HTMLButtonElement) {
         loginTab.click();
       }
-
       toast({
         title: "Cadastro realizado com sucesso",
-        description: "Por favor, faça login com suas novas credenciais",
+        description: "Por favor, faça login com suas novas credenciais"
       });
     } catch (error: any) {
       setRegisterError(error.message || "Ocorreu um erro durante o cadastro");
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardContent className="p-6">
           <div className="flex flex-col items-center space-y-2 mb-6">
@@ -126,9 +115,7 @@ const Login = () => {
           <h2 className="text-2xl font-bold text-center text-farm mb-2">
             Bem-vindo à FazendaPlus
           </h2>
-          <p className="text-gray-500 text-center mb-6">
-            Faça login ou crie uma conta para continuar
-          </p>
+          <p className="text-gray-500 text-center mb-6">Faça login ou crie uma conta para continuar </p>
 
           <Tabs defaultValue="login">
             <TabsList className="grid grid-cols-2 mb-6">
@@ -138,60 +125,30 @@ const Login = () => {
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
-                {loginError && (
-                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 flex items-center gap-2">
+                {loginError && <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 flex items-center gap-2">
                     <AlertCircle size={16} />
                     <span>{loginError}</span>
-                  </div>
-                )}
+                  </div>}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                  />
+                  <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
-                    <a 
-                      href="#" 
-                      className="text-sm text-farm hover:underline"
-                    >
+                    <a href="#" className="text-sm text-farm hover:underline">
                       Esqueceu a senha?
                     </a>
                   </div>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required 
-                  />
+                  <Input id="password" type="password" placeholder="••••••" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="remember-me" 
-                    checked={rememberMe} 
-                    onCheckedChange={(checked) => setRememberMe(checked === true)} 
-                  />
-                  <label 
-                    htmlFor="remember-me" 
-                    className="text-sm text-gray-500 cursor-pointer"
-                  >
+                  <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={checked => setRememberMe(checked === true)} />
+                  <label htmlFor="remember-me" className="text-sm text-gray-500 cursor-pointer">
                     Lembrar-me
                   </label>
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-farm hover:bg-farm-dark"
-                  disabled={loading}
-                >
+                <Button type="submit" className="w-full bg-farm hover:bg-farm-dark" disabled={loading}>
                   {loading ? "Processando..." : "Entrar"}
                 </Button>
               </form>
@@ -199,60 +156,27 @@ const Login = () => {
 
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
-                {registerError && (
-                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 flex items-center gap-2">
+                {registerError && <div className="p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 flex items-center gap-2">
                     <AlertCircle size={16} />
                     <span>{registerError}</span>
-                  </div>
-                )}
+                  </div>}
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Nome completo</Label>
-                  <Input 
-                    id="register-name" 
-                    placeholder="João Silva" 
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required 
-                  />
+                  <Input id="register-name" placeholder="João Silva" value={fullName} onChange={e => setFullName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-email">Email</Label>
-                  <Input 
-                    id="register-email" 
-                    type="email" 
-                    placeholder="seu@email.com" 
-                    value={registerEmail}
-                    onChange={(e) => setRegisterEmail(e.target.value)}
-                    required 
-                  />
+                  <Input id="register-email" type="email" placeholder="seu@email.com" value={registerEmail} onChange={e => setRegisterEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Senha</Label>
-                  <Input 
-                    id="register-password" 
-                    type="password" 
-                    placeholder="••••••" 
-                    value={registerPassword}
-                    onChange={(e) => setRegisterPassword(e.target.value)}
-                    required 
-                  />
+                  <Input id="register-password" type="password" placeholder="••••••" value={registerPassword} onChange={e => setRegisterPassword(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-confirm">Confirmar senha</Label>
-                  <Input 
-                    id="register-confirm" 
-                    type="password" 
-                    placeholder="••••••" 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required 
-                  />
+                  <Input id="register-confirm" type="password" placeholder="••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-farm hover:bg-farm-dark"
-                  disabled={loading}
-                >
+                <Button type="submit" className="w-full bg-farm hover:bg-farm-dark" disabled={loading}>
                   {loading ? "Processando..." : "Criar uma conta"}
                 </Button>
               </form>
@@ -264,8 +188,6 @@ const Login = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
