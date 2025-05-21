@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -38,9 +39,11 @@ import UserEditDialog from "./UserEditDialog";
 import { fetchUsers, removeUser, updateUser } from "@/services/user/userManagementService";
 import { UiRole } from "@/types/user.types";
 
+// Define the User interface locally to match what's returned from fetchUsers
 interface User {
   id: string;
   name: string;
+  email: string;
   role: string;
   created_at: string;
 }
@@ -63,7 +66,7 @@ export default function UserManagementTable() {
     const result = await fetchUsers();
     
     if (result.success) {
-      setUsers(result.data);
+      setUsers(result.data as User[]);
     } else {
       toast({
         title: "Erro ao carregar usuários",

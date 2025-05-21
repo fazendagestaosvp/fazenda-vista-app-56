@@ -7,7 +7,7 @@ import { updateProfile } from "./profileService";
 import { updateUserRole } from "./adminService";
 
 // Fetch all users for management
-export const fetchUsers = async (): Promise<ServiceResponse<UserWithProfile[]>> => {
+export const fetchUsers = async (): Promise<ServiceResponse<any[]>> => {
   try {
     const usersWithProfiles = await getAllUsersWithProfiles();
     

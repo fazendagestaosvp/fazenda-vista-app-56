@@ -111,7 +111,8 @@ export const useAuthMethods = () => {
     try {
       const result = await resetUserPassword({ email });
       
-      if (!result.error) {
+      // Fixed here - checking for success property instead of error
+      if (result.success) {
         toast({
           title: "Redefinição de senha solicitada",
           description: "Verifique seu email para continuar!",
