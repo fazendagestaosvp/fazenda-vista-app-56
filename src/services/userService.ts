@@ -28,6 +28,14 @@ export const addUser = async (userData: UserCreateData) => {
       throw new Error("Sessão expirada. Por favor, faça login novamente.");
     }
     
+    // Convert UI role to database role
+    let dbRole: "admin" | "viewer" | "user";
+    if (userData.role === "editor") {
+      dbRole = "user";
+    } else {
+      dbRole = userData.role as "admin" | "viewer";
+    }
+    
     // Chamar a função Edge para criar o usuário
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL || "https://ebddlqmbvwnzzlsbimza.supabase.co"}/functions/v1/create-user`,
@@ -41,7 +49,7 @@ export const addUser = async (userData: UserCreateData) => {
           email: userData.email,
           password: userData.password,
           fullName: userData.fullName,
-          role: userData.role,
+          role: dbRole,
         }),
       }
     );

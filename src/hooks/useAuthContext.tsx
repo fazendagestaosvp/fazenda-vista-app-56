@@ -19,13 +19,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { 
     signIn, 
     signUp, 
-    signOut 
+    signOut,
+    resetPassword 
   } = useAuthMethods();
   
   const { 
     isAdmin, 
     isViewer,
-    isEditor 
+    isEditor,
+    canEdit 
   } = useRoleChecks(userRole);
 
   // Wrap the signIn function to set loading
@@ -63,9 +65,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signIn: wrappedSignIn,
         signUp: wrappedSignUp,
         signOut,
+        resetPassword,
         isAdmin,
         isViewer,
-        isEditor
+        isEditor,
+        canEdit
       }}
     >
       {children}

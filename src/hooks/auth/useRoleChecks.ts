@@ -8,10 +8,14 @@ export function useRoleChecks(userRole: "admin" | "editor" | "viewer" | null) {
 
   // Verificar se o usuário é editor
   const isEditor = () => userRole === "editor";
+  
+  // Verificar se o usuário pode editar (admin ou editor)
+  const canEdit = () => userRole === "admin" || userRole === "editor";
 
   return {
     isAdmin,
     isViewer,
-    isEditor
+    isEditor,
+    canEdit
   };
 }

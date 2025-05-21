@@ -67,7 +67,8 @@ export function useAuthProvider() {
       if (data.role === 'user') {
         setUserRole('editor');
       } else {
-        setUserRole(data.role as "admin" | "editor" | "viewer");
+        // Database roles 'admin' and 'viewer' are the same as UI roles
+        setUserRole(data.role as "admin" | "viewer");
       }
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);

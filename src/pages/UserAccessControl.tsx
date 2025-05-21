@@ -58,7 +58,15 @@ const UserAccessControl = () => {
       
       const formattedUsers = usersData.map(user => {
         // Map database role to UI role
-        let uiRole: "admin" | "editor" | "viewer" = user.role === "user" ? "editor" : user.role as "admin" | "viewer";
+        let uiRole: "admin" | "editor" | "viewer";
+        
+        if (user.role === "admin") {
+          uiRole = "admin";
+        } else if (user.role === "user") { 
+          uiRole = "editor";
+        } else {
+          uiRole = "viewer";
+        }
         
         return {
           id: user.user_id,
@@ -90,7 +98,7 @@ const UserAccessControl = () => {
     switch(role) {
       case 'admin':
         return <Badge className="bg-red-500">Administrador</Badge>;
-      case 'user':
+      case 'editor':
         return <Badge className="bg-green-500">Editor</Badge>;
       case 'viewer':
         return <Badge className="bg-blue-500">Visualizador</Badge>;
@@ -103,7 +111,7 @@ const UserAccessControl = () => {
     switch(role) {
       case 'admin':
         return <Shield className="h-4 w-4 mr-1" />;
-      case 'user':
+      case 'editor':
         return <UserIcon className="h-4 w-4 mr-1" />;
       case 'viewer':
         return <Eye className="h-4 w-4 mr-1" />;

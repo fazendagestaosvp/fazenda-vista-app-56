@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuthContext";
-import { toast } from "./use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Animal {
@@ -28,7 +27,10 @@ export const useAnimals = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [currentAnimal, setCurrentAnimal] = useState<Animal | null>(null);
   
-  const { user, isAdmin, isViewer, canEdit } = useAuth();
+  const { user, isAdmin, isViewer, isEditor } = useAuth();
+
+  // Helper method for canEdit that we'll use throughout the component
+  const canEdit = () => isAdmin() || isEditor();
 
   // Carregar animais do Supabase
   useEffect(() => {

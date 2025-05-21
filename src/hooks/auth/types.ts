@@ -9,7 +9,9 @@ export interface AuthContextType {
   signIn: (email: string, password: string, onSuccess?: () => void, onError?: (message: string) => void) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   isAdmin: () => boolean;
   isViewer: () => boolean;
   isEditor: () => boolean;
+  canEdit: () => boolean;
 }

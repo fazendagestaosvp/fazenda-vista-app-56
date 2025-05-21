@@ -1,73 +1,62 @@
 
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 export function useAuthMethods() {
   const { toast } = useToast();
 
-  // Login com email e senha
+  // Login with email and password
   const signIn = async (
     email: string, 
     password: string, 
-    onSuccess?: () => void, 
+    onSuccess?: () => void,
     onError?: (message: string) => void
   ) => {
     try {
-      console.log("Tentando login para:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
-        console.error("Erro na autenticação:", error);
-        const errorMsg = error.message === "Invalid login credentials" 
-          ? "Credenciais inválidas. Verifique seu email e senha."
-          : error.message;
-          
-        toast({
-          title: "Erro ao fazer login",
-          description: errorMsg,
-          variant: "destructive"
-        });
-        
         if (onError) {
-          onError(errorMsg);
+          onError(error.message);
+        } else {
+          toast({
+            title: "Erro ao fazer login",
+            description: error.message,
+            variant: "destructive"
+          });
         }
         return;
       }
 
-      console.log("Login bem-sucedido:", data.user?.email);
       toast({
         title: "Login bem-sucedido",
         description: "Bem-vindo ao FazendaPlus!"
       });
       
-      // Execute o callback de navegação se fornecido
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
-      console.error("Erro inesperado durante login:", error);
-      const errorMsg = "Ocorreu um erro durante o login: " + (error.message || "Erro desconhecido");
-      
-      toast({
-        title: "Erro ao fazer login",
-        description: errorMsg,
-        variant: "destructive"
-      });
-      
       if (onError) {
-        onError(errorMsg);
+        onError(error.message || "Ocorreu um erro durante o login");
+      } else {
+        toast({
+          title: "Erro ao fazer login",
+          description: error.message || "Ocorreu um erro durante o login",
+          variant: "destructive"
+        });
       }
     }
   };
 
-  // Registro de novo usuário
+  // Sign up with email, password, and full name
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      console.log("Registrando novo usuário:", email);
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -78,36 +67,28 @@ export function useAuthMethods() {
       });
 
       if (error) {
-        console.error("Erro no cadastro:", error);
-        const errorMsg = error.message === "User already registered" 
-          ? "Este email já está cadastrado. Tente fazer login."
-          : error.message;
-          
         toast({
           title: "Erro ao criar conta",
-          description: errorMsg,
+          description: error.message,
           variant: "destructive"
         });
-        throw new Error(errorMsg);
+        return;
       }
 
-      console.log("Cadastro realizado com sucesso:", data.user?.email);
       toast({
-        title: "Cadastro realizado com sucesso",
-        description: "Sua conta foi criada. Faça login para continuar."
+        title: "Conta criada",
+        description: "Verifique seu email para confirmar seu cadastro."
       });
     } catch (error: any) {
-      console.error("Erro inesperado durante cadastro:", error);
       toast({
         title: "Erro ao criar conta",
         description: error.message || "Ocorreu um erro durante o cadastro",
         variant: "destructive"
       });
-      throw error;
     }
   };
 
-  // Logout
+  // Sign out
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -124,9 +105,44 @@ export function useAuthMethods() {
     }
   };
 
+  // Reset password
+  const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Erro ao redefinir senha",
+          description: error.message,
+          variant: "destructive"
+        });
+        return { success: false, message: error.message };
+      }
+
+      toast({
+        title: "Email enviado",
+        description: "Verifique seu email para redefinir sua senha."
+      });
+      return { success: true, message: "Email de redefinição de senha enviado com sucesso." };
+    } catch (error: any) {
+      toast({
+        title: "Erro ao redefinir senha",
+        description: error.message || "Ocorreu um erro ao solicitar a redefinição de senha",
+        variant: "destructive"
+      });
+      return { 
+        success: false, 
+        message: error.message || "Ocorreu um erro ao solicitar a redefinição de senha" 
+      };
+    }
+  };
+
   return {
     signIn,
     signUp,
-    signOut
+    signOut,
+    resetPassword
   };
 }

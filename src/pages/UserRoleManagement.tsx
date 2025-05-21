@@ -54,7 +54,15 @@ const UserRoleManagement = () => {
       
       const formattedUsers = usersData.map(user => {
         // Map database role to UI role
-        let uiRole: "admin" | "editor" | "viewer" = user.role === "user" ? "editor" : user.role as "admin" | "viewer";
+        let uiRole: "admin" | "editor" | "viewer";
+        
+        if (user.role === "admin") {
+          uiRole = "admin";
+        } else if (user.role === "user") {
+          uiRole = "editor";
+        } else {
+          uiRole = "viewer";
+        }
         
         return {
           id: user.user_id,
