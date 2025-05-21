@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuthContext";
-<<<<<<< HEAD
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,15 +19,12 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 
-=======
-import { AlertCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 const Login = () => {
   // Estados para o formulário de login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Estados para o formulário de registro
   const [registerEmail, setRegisterEmail] = useState("");
@@ -36,7 +34,6 @@ const Login = () => {
 
   // Estado para mostrar erros de validação
   const [registerError, setRegisterError] = useState<string | null>(null);
-<<<<<<< HEAD
   
   // Estados para o diálogo de redefinição de senha
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -47,18 +44,6 @@ const Login = () => {
   const { signIn, signUp, resetPassword, loading } = useAuth();
   const { toast } = useToast();
 
-=======
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const {
-    signIn,
-    signUp,
-    loading
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
@@ -80,7 +65,6 @@ const Login = () => {
       setLoginError(error.message || "Ocorreu um erro durante o login");
     }
   };
-<<<<<<< HEAD
   
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,8 +92,6 @@ const Login = () => {
     }
   };
 
-=======
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
   const validateRegistration = (): boolean => {
     if (!fullName.trim()) {
       setRegisterError("Nome completo é obrigatório");
@@ -130,6 +112,7 @@ const Login = () => {
     setRegisterError(null);
     return true;
   };
+  
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateRegistration()) {
@@ -157,7 +140,9 @@ const Login = () => {
       setRegisterError(error.message || "Ocorreu um erro durante o cadastro");
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardContent className="p-6">
           <div className="flex flex-col items-center space-y-2 mb-6">
@@ -171,7 +156,7 @@ const Login = () => {
           <h2 className="text-2xl font-bold text-center text-farm mb-2">
             Bem-vindo à FazendaPlus
           </h2>
-          <p className="text-gray-500 text-center mb-6">Faça login ou crie uma conta para continuar </p>
+          <p className="text-gray-500 text-center mb-6">Faça login ou crie uma conta para continuar </p>
 
           <Tabs defaultValue="login">
             <TabsList className="grid grid-cols-2 mb-6">
@@ -192,15 +177,11 @@ const Login = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
-<<<<<<< HEAD
                     <button 
                       type="button"
                       onClick={() => setIsResetDialogOpen(true)}
                       className="text-sm text-farm hover:underline"
                     >
-=======
-                    <a href="#" className="text-sm text-farm hover:underline">
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
                       Esqueceu a senha?
                     </button>
                   </div>
@@ -252,7 +233,6 @@ const Login = () => {
           </div>
         </CardContent>
       </Card>
-<<<<<<< HEAD
 
       {/* Diálogo de Redefinição de Senha */}
       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
@@ -298,8 +278,6 @@ const Login = () => {
       </Dialog>
     </div>
   );
-=======
-    </div>;
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 };
+
 export default Login;

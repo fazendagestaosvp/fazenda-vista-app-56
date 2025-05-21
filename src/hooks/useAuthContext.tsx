@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   userRole: "admin" | "editor" | "viewer" | null;
   loading: boolean;
-  signIn: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
+  signIn: (email: string, password: string, onSuccess?: () => void, onError?: (message: string) => void) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -27,48 +27,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<"admin" | "editor" | "viewer" | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-=======
 
-import React, { createContext, useContext, ReactNode } from "react";
-import { useAuthProvider } from "./auth/useAuthProvider";
-import { useAuthMethods } from "./auth/useAuthMethods";
-import { useRoleChecks } from "./auth/useRoleChecks";
-import { AuthContextType } from "./auth/types";
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        // Fetch user role if user is logged in
+        if (currentSession?.user) {
+          await fetchUserRole(currentSession.user.id);
+        } else {
+          setUserRole(null);
+        }
+      }
+    );
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+    // Check for existing session
+    const initializeAuth = async () => {
+      try {
+        setLoading(true);
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          await fetchUserRole(currentSession.user.id);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { 
-    session, 
-    user, 
-    userRole, 
-    loading, 
-    setLoading 
-  } = useAuthProvider();
-  
-  const { 
-    signIn, 
-    signUp, 
-    signOut 
-  } = useAuthMethods();
-  
-  const { 
-    isAdmin, 
-    isViewer,
-    isEditor 
-  } = useRoleChecks(userRole);
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
+    initializeAuth();
 
-  // Wrap the signIn function to set loading
-  const wrappedSignIn = async (
-    email: string, 
-    password: string, 
-    onSuccess?: () => void, 
-    onError?: (message: string) => void
-  ) => {
-    setLoading(true);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const fetchUserRole = async (userId: string) => {
     try {
-<<<<<<< HEAD
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -80,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      // Mapear 'user' para 'editor' se necessário (para compatibilidade)
+      // Map 'user' role to 'editor' for compatibility
       if (data.role === 'user') {
         setUserRole('editor');
       } else {
@@ -91,11 +94,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Login com email e senha
-  const signIn = async (email: string, password: string, onSuccess?: () => void) => {
+  // Login with email and password
+  const signIn = async (
+    email: string, 
+    password: string, 
+    onSuccess?: () => void,
+    onError?: (message: string) => void
+  ) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -106,6 +114,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           description: error.message,
           variant: "destructive"
         });
+        if (onError) {
+          onError(error.message);
+        }
         return;
       }
 
@@ -114,7 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         description: "Bem-vindo ao FazendaPlus!"
       });
       
-      // Execute o callback de navegação se fornecido
+      // Execute success callback if provided
       if (onSuccess) {
         onSuccess();
       }
@@ -124,25 +135,78 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         description: error.message || "Ocorreu um erro durante o login",
         variant: "destructive"
       });
-=======
-      await signIn(email, password, onSuccess, onError);
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
+      if (onError) {
+        onError(error.message || "Ocorreu um erro durante o login");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Wrap the signUp function to set loading
-  const wrappedSignUp = async (email: string, password: string, fullName: string) => {
-    setLoading(true);
+  // Register new user
+  const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      await signUp(email, password, fullName);
+      setLoading(true);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Erro ao criar conta",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create profile entry
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            full_name: fullName
+          });
+
+        if (profileError) {
+          console.error("Erro ao criar perfil:", profileError);
+        }
+
+        // Set default role as viewer
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: data.user.id,
+            role: 'viewer'
+          });
+
+        if (roleError) {
+          console.error("Erro ao definir papel do usuário:", roleError);
+        }
+      }
+
+      toast({
+        title: "Conta criada com sucesso",
+        description: "Sua conta foi criada. Você já pode fazer login."
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar conta",
+        description: error.message || "Ocorreu um erro durante o cadastro",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-<<<<<<< HEAD
   // Logout
   const signOut = async () => {
     try {
@@ -160,19 +224,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Verificar se o usuário é administrador
+  // Check if user is admin
   const isAdmin = () => userRole === "admin";
   
-  // Verificar se o usuário é editor
+  // Check if user is editor
   const isEditor = () => userRole === "editor";
   
-  // Verificar se o usuário é apenas visualizador
+  // Check if user is viewer
   const isViewer = () => userRole === "viewer";
   
-  // Verificar se o usuário pode editar (admin ou editor)
+  // Check if user can edit (admin or editor)
   const canEdit = () => userRole === "admin" || userRole === "editor";
 
-  // Função para redefinir a senha
+  // Reset password function
   const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -203,8 +267,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-=======
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
   return (
     <AuthContext.Provider
       value={{
@@ -212,20 +274,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user,
         userRole,
         loading,
-        signIn: wrappedSignIn,
-        signUp: wrappedSignUp,
+        signIn,
+        signUp,
         signOut,
-<<<<<<< HEAD
         resetPassword,
         isAdmin,
         isEditor,
         isViewer,
         canEdit
-=======
-        isAdmin,
-        isViewer,
-        isEditor
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
       }}
     >
       {children}
