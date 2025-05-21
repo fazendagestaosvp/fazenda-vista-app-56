@@ -76,40 +76,31 @@ const Configuracoes = () => {
               <CardHeader>
                 <CardTitle className="flex items-center text-farm">
                   <Shield className="mr-2 h-5 w-5" />
-                  Administração
+                  Administração de Usuários
                 </CardTitle>
                 <CardDescription>
                   Acesso a funções administrativas do sistema.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Link to="/admin/promote">
+                <Link to="/admin/users">
                   <Button className="w-full bg-farm hover:bg-farm-dark mb-2">
+                    Gerenciamento de Usuários
+                  </Button>
+                </Link>
+                <Link to="/admin/promote">
+                  <Button className="w-full bg-farm-light hover:bg-farm mb-2">
                     Promover Administrador
+                  </Button>
+                </Link>
+                <Link to="/admin/promote-editor">
+                  <Button className="w-full bg-farm-light hover:bg-farm mb-2">
+                    Promover Editor
                   </Button>
                 </Link>
                 <Link to="/admin/promote-viewer">
                   <Button className="w-full bg-farm-light hover:bg-farm">
                     Promover Visualizador
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="border-farm/20">
-              <CardHeader>
-                <CardTitle className="flex items-center text-farm">
-                  <Users className="mr-2 h-5 w-5" />
-                  Gerenciamento de Usuários
-                </CardTitle>
-                <CardDescription>
-                  Visualize e gerencie os papéis dos usuários.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link to="/admin/users">
-                  <Button className="w-full bg-farm hover:bg-farm-dark">
-                    Gerenciar Usuários
                   </Button>
                 </Link>
               </CardContent>
