@@ -1,9 +1,8 @@
-
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
-import { useDocuments } from "@/hooks/use-documents";
+import { useDocuments } from "@/hooks/documents";
 
 interface UploadDocumentDialogProps {
   isOpen: boolean;

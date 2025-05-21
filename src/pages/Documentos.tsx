@@ -8,9 +8,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewFolderDialog } from "@/components/documentos/NewFolderDialog";
 import { UploadDocumentDialog } from "@/components/documentos/UploadDocumentDialog";
-import { useDocuments } from "@/hooks/use-documents";
+import { useDocuments } from "@/hooks/documents";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { Folder as FolderType, Document as DocumentType } from "@/hooks/use-documents";
+import { Folder as FolderType, Document as DocumentType } from "@/hooks/documents";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useToast } from "@/components/ui/use-toast";
 
