@@ -1,21 +1,12 @@
-
-<<<<<<< HEAD
-import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UserCog, LogOut } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuthContext";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-=======
-import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UsersIcon } from "lucide-react";
+import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UsersIcon, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuthContext";
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import LogoutButton from "./LogoutButton";
 
 type SidebarLinkProps = {
   icon: React.ElementType;
@@ -53,14 +44,9 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const [hoverItem, setHoverItem] = useState<string | null>(null);
-<<<<<<< HEAD
-  const { isAdmin, signOut } = useAuth();
-  const { toast } = useToast();
-=======
   const { isAdmin } = useAuth();
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
+  const { toast } = useToast();
 
-  // Links básicos disponíveis para todos os usuários
   const baseLinks = [
     { icon: LayoutDashboard, label: "Dashboard", to: "/" },
     { icon: Database, label: "Gestão de Gado", to: "/gestao-gado" },
@@ -73,20 +59,9 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
     { icon: Settings, label: "Configurações", to: "/configuracoes" },
   ];
   
-<<<<<<< HEAD
-  // Links adicionais apenas para administradores
-  const adminLinks = [
-    { icon: UserCog, label: "Gerenciar Usuários", to: "/admin/usuarios" },
-  ];
-  
-  // Combinar os links com base no papel do usuário
-  const sidebarLinks = isAdmin() ? [...baseLinks, ...adminLinks] : baseLinks;
-=======
-  // Links administrativos - somente visíveis para administradores
   const adminLinks = [
     { icon: UsersIcon, label: "Controle de Acesso", to: "/admin/access-control" }
   ];
->>>>>>> 5998dc19abbb5bedcc5e25eda2e927264d928912
 
   return (
     <div 
@@ -121,7 +96,7 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
         {/* Navigation */}
         <div className="flex-1 py-4 overflow-y-auto">
           <nav className={cn("space-y-1", !isSidebarOpen ? "px-1" : "px-2")}>
-            {sidebarLinks.map((link) => (
+            {baseLinks.map((link) => (
               <div 
                 key={link.to}
                 onMouseEnter={() => !isSidebarOpen && setHoverItem(link.to)}
@@ -193,35 +168,24 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
           "px-2 py-3",
           !isSidebarOpen ? "flex justify-center" : ""
         )}>
-          <Button 
+          <LogoutButton 
             variant={isSidebarOpen ? "destructive" : "ghost"}
             className={cn(
               "w-full gap-2", 
               !isSidebarOpen ? "h-10 w-10 p-0" : "",
               !isSidebarOpen ? "text-white hover:bg-farm-dark" : ""
             )}
-            onClick={async () => {
-              try {
-                await signOut();
-                toast({
-                  title: "Logout realizado",
-                  description: "Você saiu da sua conta com sucesso."
-                });
-                navigate("/login");
-              } catch (error) {
-                console.error("Erro ao fazer logout:", error);
-                toast({
-                  title: "Erro ao fazer logout",
-                  description: "Ocorreu um erro durante o logout",
-                  variant: "destructive"
-                });
-              }
+            redirectTo="/login"
+            showIcon={true}
+            onLogoutSuccess={() => {
+              toast({
+                title: "Logout realizado",
+                description: "Você saiu da sua conta com sucesso."
+              });
             }}
-            title="Sair"
           >
-            <LogOut size={20} className={!isSidebarOpen ? "text-white" : ""} />
             {isSidebarOpen && <span>Sair</span>}
-          </Button>
+          </LogoutButton>
         </div>
 
         {/* Footer */}
