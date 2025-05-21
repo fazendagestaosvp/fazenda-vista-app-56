@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { DbRole, UiRole, dbToUiRole, uiToDbRole } from "@/types/user.types";
 import { ServiceResponse, UpdateUserProps, UserWithProfile } from "./types";
@@ -70,37 +71,53 @@ export const fetchUsers = async (): Promise<ServiceResponse<any[]>> => {
 // Update user information
 export const updateUser = async ({ userId, fullName, role }: UpdateUserProps): Promise<ServiceResponse> => {
   try {
+    console.log("Updating user:", { userId, fullName, role });
+    
     // Convert UI role to DB role if provided
     const dbRole = role ? uiToDbRole(role as UiRole) : undefined;
     
     // Update profile if fullName is provided
     if (fullName) {
-      await updateProfile(userId, { full_name: fullName });
+      try {
+        await updateProfile(userId, { full_name: fullName });
+      } catch (error: any) {
+        console.error("Erro ao atualizar perfil:", error);
+        // Continue with role update even if profile update fails
+      }
     }
     
     // Update role if provided
     if (dbRole) {
-      // We need to verify that the dbRole is a valid enum value for user_roles table
-      // Validate the role value
-      const validRoles = ['admin', 'user', 'viewer'];
+      console.log("Updating user role to:", dbRole);
       
-      if (!validRoles.includes(dbRole)) {
-        return { success: false, error: `Invalid role: ${dbRole}` };
-      }
-      
-      // Inserir ou atualizar role diretamente na tabela user_roles
-      const { error } = await supabase
+      // First check if the user already has a role entry
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .upsert(
-          { user_id: userId, role: dbRole as any },
-          { onConflict: 'user_id' }
-        );
-        
-      if (error) throw error;
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingRole) {
+        // Update existing role
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: dbRole })
+          .eq('user_id', userId);
+          
+        if (error) throw error;
+      } else {
+        // Insert new role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: dbRole });
+          
+        if (error) throw error;
+      }
     }
     
     return { success: true };
   } catch (error: any) {
+    console.error("Erro ao atualizar usuário:", error);
     return { success: false, error: error.message || 'Erro ao atualizar usuário' };
   }
 };
@@ -124,14 +141,20 @@ export const removeUser = async (userId: string): Promise<ServiceResponse> => {
     if (roleError) throw roleError;
     
     // Update profile to indicate inactivity (we could add a note to full_name)
+    const { data: profile, error: profileFetchError } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', userId)
+      .single();
+      
+    if (profileFetchError && profileFetchError.code !== 'PGRST116') {
+      throw profileFetchError;
+    }
+    
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ 
-        full_name: "(Inativo) " + (await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', userId)
-          .single()).data?.full_name || "" 
+        full_name: "(Inativo) " + (profile?.full_name || "")
       })
       .eq('id', userId);
     

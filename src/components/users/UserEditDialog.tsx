@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -63,6 +64,12 @@ const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogP
     try {
       setIsLoading(true);
       
+      console.log("Atualizando usuário:", {
+        userId: user.id,
+        fullName,
+        role
+      });
+      
       const result = await updateUser({
         userId: user.id,
         fullName,
@@ -82,6 +89,7 @@ const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogP
       onOpenChange(false);
       onSuccess(); // Atualizar a lista de usuários
     } catch (error: any) {
+      console.error("Erro ao atualizar usuário:", error);
       toast({
         title: "Erro ao atualizar usuário",
         description: error.message || "Ocorreu um erro ao atualizar o usuário",
