@@ -1,4 +1,3 @@
-
 // Update import paths to use the refactored services
 import { resetUserPassword, signInUser, signOutUser, signUpUser } from "@/services/user";
 import { initUserProfile } from "@/services/user";
@@ -109,23 +108,16 @@ export const useAuthMethods = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      const result = await resetUserPassword({ email });
+      // The resetUserPassword function returns data and not an object with success/error properties
+      const data = await resetUserPassword({ email });
       
-      // Fixed here - checking for success property instead of error
-      if (result.success) {
-        toast({
-          title: "Redefinição de senha solicitada",
-          description: "Verifique seu email para continuar!",
-        });
-        return { success: true, message: "Email de redefinição enviado com sucesso." };
-      }
-
+      // Since data is the direct response and doesn't have a success property,
+      // we can consider it successful if we got here without an error
       toast({
-        title: "Erro ao redefinir senha",
-        description: "Não foi possível solicitar a redefinição de senha.",
-        variant: "destructive",
+        title: "Redefinição de senha solicitada",
+        description: "Verifique seu email para continuar!",
       });
-      return { success: false, message: "Erro ao enviar email de redefinição." };
+      return { success: true, message: "Email de redefinição enviado com sucesso." };
     } catch (error: any) {
       console.error("Erro ao solicitar redefinição de senha:", error);
       toast({

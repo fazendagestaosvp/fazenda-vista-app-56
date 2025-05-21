@@ -51,7 +51,7 @@ export const resetUserPassword = async ({ email }: { email: string }) => {
       throw error;
     }
 
-    return data;
+    return { success: true, data };
   } catch (error) {
     console.error("Erro ao solicitar redefinição de senha:", error);
     throw error;
