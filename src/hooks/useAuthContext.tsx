@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,12 +6,16 @@ import { useToast } from "@/components/ui/use-toast";
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  userRole: "admin" | "user" | null;
+  userRole: "admin" | "editor" | "viewer" | null;
   loading: boolean;
   signIn: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   isAdmin: () => boolean;
+  isEditor: () => boolean;
+  isViewer: () => boolean;
+  canEdit: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,7 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<"admin" | "user" | null>(null);
+  const [userRole, setUserRole] = useState<"admin" | "editor" | "viewer" | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -71,7 +74,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setUserRole(data.role);
+      // Mapear 'user' para 'editor' se necessário (para compatibilidade)
+      if (data.role === 'user') {
+        setUserRole('editor');
+      } else {
+        setUserRole(data.role as "admin" | "editor" | "viewer");
+      }
     } catch (error) {
       console.error("Erro ao buscar função do usuário:", error);
     }
@@ -172,6 +180,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Verificar se o usuário é administrador
   const isAdmin = () => userRole === "admin";
+  
+  // Verificar se o usuário é editor
+  const isEditor = () => userRole === "editor";
+  
+  // Verificar se o usuário é apenas visualizador
+  const isViewer = () => userRole === "viewer";
+  
+  // Verificar se o usuário pode editar (admin ou editor)
+  const canEdit = () => userRole === "admin" || userRole === "editor";
+
+  // Função para redefinir a senha
+  const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Erro ao redefinir senha",
+          description: error.message,
+          variant: "destructive"
+        });
+        return { success: false, message: error.message };
+      }
+
+      toast({
+        title: "Email enviado",
+        description: "Verifique seu email para redefinir sua senha."
+      });
+      return { success: true, message: "Email de redefinição de senha enviado com sucesso." };
+    } catch (error: any) {
+      toast({
+        title: "Erro ao redefinir senha",
+        description: error.message || "Ocorreu um erro ao solicitar a redefinição de senha",
+        variant: "destructive"
+      });
+      return { success: false, message: error.message || "Ocorreu um erro ao solicitar a redefinição de senha" };
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -183,7 +231,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signIn,
         signUp,
         signOut,
-        isAdmin
+        resetPassword,
+        isAdmin,
+        isEditor,
+        isViewer,
+        canEdit
       }}
     >
       {children}

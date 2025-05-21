@@ -24,7 +24,7 @@ import {
 } from "./form/FormFields";
 
 interface AddCattleFormProps {
-  onSuccess: () => void;
+  onSuccess: (animal?: any) => void;
   onCancel: () => void;
   initialData?: any;
   isEditing?: boolean;
@@ -99,13 +99,30 @@ export function AddCattleForm({
         initialData.observations = data.observations;
       }
 
+      // Criar objeto animal com os dados do formulário
+      const animalData = {
+        id: data.earTagId,
+        name: data.name,
+        type: data.breed,
+        coatColor: data.coatColor,
+        age: calculateAge(data.birthDate),
+        weight: parseFloat(data.weight),
+        status: data.status,
+        gender: data.gender,
+        lastCheck: data.birthDate,
+        farmEntryDate: data.farmEntryDate,
+        birthSeason: data.birthSeason,
+        observations: data.observations,
+        category: data.category
+      };
+
       toast({
         title: isEditing ? "Animal atualizado com sucesso" : "Animal adicionado com sucesso",
         description: `ID: ${data.earTagId}`,
       });
       
       setIsSubmitting(false);
-      onSuccess();
+      onSuccess(animalData);
     }, 1000);
   };
 

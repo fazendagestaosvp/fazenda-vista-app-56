@@ -2,18 +2,9 @@
 import { ArrowUp, ArrowDown, Eye, Pencil, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Animal } from "@/hooks/use-animals-with-auth";
 
-interface Animal {
-  id: string;
-  numero: string;
-  identificacao: string;
-  sexo: "M" | "F";
-  raca: string;
-  dataNascimento: string;
-  pesoKg: number;
-  status: "Ativo" | "Vendido" | "Óbito";
-  ultimaVacinacao: string;
-}
+// A interface Animal é importada do hook use-animals-with-auth
 
 interface AnimalTableProps {
   animals: Animal[];
@@ -23,6 +14,8 @@ interface AnimalTableProps {
   onView: (animal: Animal) => void;
   onEdit: (animal: Animal) => void;
   onDelete: (animalId: string) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export const AnimalTable = ({
@@ -32,7 +25,9 @@ export const AnimalTable = ({
   onSort,
   onView,
   onEdit,
-  onDelete
+  onDelete,
+  canEdit = true,
+  canDelete = true
 }: AnimalTableProps) => {
   const SortIcon = ({ field }: { field: keyof Animal }) => {
     if (sortField !== field) return null;
@@ -110,12 +105,16 @@ export const AnimalTable = ({
                     <Button variant="ghost" size="sm" onClick={() => onView(animal)}>
                       <Eye size={16} />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(animal)}>
-                      <Pencil size={16} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDelete(animal.id)}>
-                      <Trash2 size={16} />
-                    </Button>
+                    {canEdit && (
+                      <Button variant="ghost" size="sm" onClick={() => onEdit(animal)}>
+                        <Pencil size={16} />
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button variant="ghost" size="sm" onClick={() => onDelete(animal.id)}>
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { useAnimals } from "@/hooks/use-animals";
+import { useAnimals, Animal } from "@/hooks/use-animals-with-auth";
 import { AnimalTable } from "@/components/animals/AnimalTable";
 import { AnimalListHeader } from "@/components/animals/AnimalListHeader";
 import { AnimalDetailsDialog } from "@/components/animals/AnimalDetailsDialog";
@@ -27,7 +27,10 @@ const Animais = () => {
     handleDeleteAnimal,
     handleAddSuccess,
     handleEditSuccess,
-    convertToCattleFormat
+    convertToCattleFormat,
+    canAdd,
+    canEdit,
+    canDelete
   } = useAnimals();
 
   return (
@@ -43,6 +46,7 @@ const Animais = () => {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             onAddClick={() => setIsAddDialogOpen(true)}
+            canAdd={canAdd}
           />
           
           <AnimalTable
@@ -53,6 +57,8 @@ const Animais = () => {
             onView={handleViewAnimal}
             onEdit={handleEditAnimal}
             onDelete={handleDeleteAnimal}
+            canEdit={canEdit}
+            canDelete={canDelete}
           />
         </CardContent>
       </Card>
@@ -61,7 +67,7 @@ const Animais = () => {
       <AnimalAddDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
-        onSuccess={handleAddSuccess}
+        onSuccess={(animal) => handleAddSuccess(animal)}
       />
 
       <AnimalDetailsDialog

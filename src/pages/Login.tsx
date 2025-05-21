@@ -7,6 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const Login = () => {
   // Estados para o formulário de login
@@ -22,13 +31,45 @@ const Login = () => {
   
   // Estado para mostrar erros de validação
   const [registerError, setRegisterError] = useState<string | null>(null);
+  
+  // Estados para o diálogo de redefinição de senha
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
 
   const navigate = useNavigate();
-  const { signIn, signUp, loading } = useAuth();
+  const { signIn, signUp, resetPassword, loading } = useAuth();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     await signIn(email, password, () => navigate('/dashboard'));
+  };
+  
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetEmail.trim()) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, informe seu email para redefinir a senha.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsResetting(true);
+    
+    try {
+      const result = await resetPassword(resetEmail);
+      
+      if (result.success) {
+        setIsResetDialogOpen(false);
+        setResetEmail("");
+      }
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const validateRegistration = (): boolean => {
@@ -113,12 +154,13 @@ const Login = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
-                    <a 
-                      href="#" 
+                    <button 
+                      type="button"
+                      onClick={() => setIsResetDialogOpen(true)}
                       className="text-sm text-farm hover:underline"
                     >
                       Esqueceu a senha?
-                    </a>
+                    </button>
                   </div>
                   <Input 
                     id="password" 
@@ -214,6 +256,49 @@ const Login = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Diálogo de Redefinição de Senha */}
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Redefinir senha</DialogTitle>
+            <DialogDescription>
+              Informe seu email para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleResetPassword}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="reset-email" className="col-span-4">
+                  Email
+                </Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="col-span-4"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsResetDialogOpen(false)}
+                disabled={isResetting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isResetting}>
+                {isResetting ? "Enviando..." : "Enviar link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

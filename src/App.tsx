@@ -4,6 +4,7 @@ import { AuthProvider } from "@/hooks/useAuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import { AppLayout } from "./components/AppLayout";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Animais from "./pages/Animais";
 import GestaoGado from "./pages/GestaoGado";
@@ -20,6 +21,7 @@ import GestaoCavalos from "./pages/GestaoCavalos";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import AdminPromote from "./pages/AdminPromote";
+import UserManagement from "./pages/UserManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -28,6 +30,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route 
             path="/" 
             element={
@@ -55,6 +58,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly={true}>
                   <AdminPromote />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="admin/usuarios" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <UserManagement />
                 </ProtectedRoute>
               } 
             />

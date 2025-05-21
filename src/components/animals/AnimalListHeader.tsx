@@ -8,12 +8,14 @@ interface AnimalListHeaderProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onAddClick: () => void;
+  canAdd?: boolean;
 }
 
 export const AnimalListHeader = ({ 
   searchTerm, 
   onSearchChange, 
-  onAddClick 
+  onAddClick,
+  canAdd = true // Por padrão, permite adicionar
 }: AnimalListHeaderProps) => {
   return (
     <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
@@ -49,13 +51,15 @@ export const AnimalListHeader = ({
           Exportar
         </Button>
         
-        <Button 
-          className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2"
-          onClick={onAddClick}
-        >
-          <Plus size={16} />
-          Novo Animal
-        </Button>
+        {canAdd && (
+          <Button 
+            className="bg-farm hover:bg-farm-dark text-white flex items-center gap-2"
+            onClick={onAddClick}
+          >
+            <Plus size={16} />
+            Novo Animal
+          </Button>
+        )}
       </div>
     </div>
   );

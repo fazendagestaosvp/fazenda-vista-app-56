@@ -6,7 +6,7 @@ import { AddCattleForm } from "@/components/cattle/AddCattleForm";
 interface AnimalAddDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (animal: any) => void;
 }
 
 export const AnimalAddDialog = ({ 

@@ -28,7 +28,7 @@ export const useAnimals = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [currentAnimal, setCurrentAnimal] = useState<Animal | null>(null);
   
-  const { user } = useAuth();
+  const { user, isAdmin, isViewer, canEdit } = useAuth();
 
   // Carregar animais do Supabase
   useEffect(() => {
@@ -41,9 +41,18 @@ export const useAnimals = () => {
       
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Consulta base
+        let query = supabase
           .from('animals')
           .select('*');
+        
+        // Se não for admin, mostrar apenas os animais do próprio usuário
+        if (!isAdmin()) {
+          query = query.eq('user_id', user.id);
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
           throw error;
@@ -79,7 +88,7 @@ export const useAnimals = () => {
     };
     
     fetchAnimals();
-  }, [user]);
+  }, [user, isAdmin]);
 
   const formatDateString = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
@@ -126,6 +135,29 @@ export const useAnimals = () => {
   const handleDeleteAnimal = async (animalId: string) => {
     if (!user) return;
     
+    // Verificar se o usuário é apenas visualizador
+    if (isViewer()) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para excluir animais.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Verificar se o animal pertence ao usuário atual (exceto para admin)
+    if (!isAdmin()) {
+      const animalToDelete = animals.find(a => a.id === animalId);
+      if (animalToDelete?.user_id !== user.id) {
+        toast({
+          title: "Acesso negado",
+          description: "Você só pode excluir seus próprios animais.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     if (confirm("Tem certeza que deseja excluir este animal?")) {
       try {
         const { error } = await supabase
@@ -153,6 +185,16 @@ export const useAnimals = () => {
 
   const handleAddSuccess = async (newAnimal: any) => {
     if (!user) return;
+    
+    // Verificar se o usuário é apenas visualizador
+    if (isViewer()) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para adicionar animais.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       // Preparar os dados para inserção
@@ -209,6 +251,26 @@ export const useAnimals = () => {
 
   const handleEditSuccess = async (updatedAnimal: any) => {
     if (!user || !currentAnimal) return;
+    
+    // Verificar se o usuário é apenas visualizador
+    if (isViewer()) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para editar animais.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Verificar se o animal pertence ao usuário atual (exceto para admin)
+    if (!isAdmin() && currentAnimal.user_id !== user.id) {
+      toast({
+        title: "Acesso negado",
+        description: "Você só pode editar seus próprios animais.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       const animalData = {
@@ -311,6 +373,11 @@ export const useAnimals = () => {
     handleDeleteAnimal,
     handleAddSuccess,
     handleEditSuccess,
-    convertToCattleFormat
+    convertToCattleFormat,
+    // Adicionar informações de permissão para uso na UI
+    canEdit: canEdit(),
+    canDelete: canEdit(),
+    canAdd: canEdit(),
+    isAdmin: isAdmin()
   };
 };

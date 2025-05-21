@@ -1,9 +1,12 @@
 
-import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, Database, BarChart3, Calendar, FileText, Settings, Menu, Users, Activity, Baby, UserCog, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuthContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 type SidebarLinkProps = {
   icon: React.ElementType;
@@ -38,10 +41,14 @@ type AppSidebarProps = {
 
 export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const [hoverItem, setHoverItem] = useState<string | null>(null);
+  const { isAdmin, signOut } = useAuth();
+  const { toast } = useToast();
 
-  const sidebarLinks = [
+  // Links básicos disponíveis para todos os usuários
+  const baseLinks = [
     { icon: LayoutDashboard, label: "Dashboard", to: "/" },
     { icon: Database, label: "Gestão de Gado", to: "/gestao-gado" },
     { icon: Users, label: "Gestão de Cavalos", to: "/gestao-cavalos" },
@@ -52,6 +59,14 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
     { icon: FileText, label: "Documentos", to: "/documentos" },
     { icon: Settings, label: "Configurações", to: "/configuracoes" },
   ];
+  
+  // Links adicionais apenas para administradores
+  const adminLinks = [
+    { icon: UserCog, label: "Gerenciar Usuários", to: "/admin/usuarios" },
+  ];
+  
+  // Combinar os links com base no papel do usuário
+  const sidebarLinks = isAdmin() ? [...baseLinks, ...adminLinks] : baseLinks;
 
   return (
     <div 
@@ -113,6 +128,42 @@ export const AppSidebar = ({ isSidebarOpen, toggleSidebar }: AppSidebarProps) =>
               </div>
             ))}
           </nav>
+        </div>
+
+        {/* Logout Button */}
+        <div className={cn(
+          "px-2 py-3",
+          !isSidebarOpen ? "flex justify-center" : ""
+        )}>
+          <Button 
+            variant={isSidebarOpen ? "destructive" : "ghost"}
+            className={cn(
+              "w-full gap-2", 
+              !isSidebarOpen ? "h-10 w-10 p-0" : "",
+              !isSidebarOpen ? "text-white hover:bg-farm-dark" : ""
+            )}
+            onClick={async () => {
+              try {
+                await signOut();
+                toast({
+                  title: "Logout realizado",
+                  description: "Você saiu da sua conta com sucesso."
+                });
+                navigate("/login");
+              } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+                toast({
+                  title: "Erro ao fazer logout",
+                  description: "Ocorreu um erro durante o logout",
+                  variant: "destructive"
+                });
+              }
+            }}
+            title="Sair"
+          >
+            <LogOut size={20} className={!isSidebarOpen ? "text-white" : ""} />
+            {isSidebarOpen && <span>Sair</span>}
+          </Button>
         </div>
 
         {/* Footer */}
