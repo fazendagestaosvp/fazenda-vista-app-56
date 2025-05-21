@@ -4,17 +4,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import UserManagementTable from "@/components/users/UserManagementTable";
+import { useToast } from "@/components/ui/use-toast";
 
 const UserManagement = () => {
-  const { isAdmin } = useAuth();
+  const { userRole } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  console.log("UserRole em UserManagement:", userRole);
   
   // Verificar se é admin e redirecionar se não for
   useEffect(() => {
-    if (!isAdmin()) {
+    if (userRole !== "admin") {
       navigate("/dashboard");
+      toast({
+        title: "Acesso restrito",
+        description: "Apenas administradores podem acessar esta página",
+        variant: "destructive",
+      });
     }
-  }, [isAdmin, navigate]);
+  }, [userRole, navigate, toast]);
   
   return (
     <div className="container mx-auto py-6">

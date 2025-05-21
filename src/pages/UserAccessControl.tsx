@@ -16,12 +16,14 @@ const UserAccessControl = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { userRole } = useAuth();
   const navigate = useNavigate();
+  
+  console.log("UserRole em UserAccessControl:", userRole);
   
   // Verificar se é admin e redirecionar se não for
   useEffect(() => {
-    if (!isAdmin()) {
+    if (userRole !== "admin") {
       navigate("/dashboard");
       toast({
         title: "Acesso restrito",
@@ -29,7 +31,7 @@ const UserAccessControl = () => {
         variant: "destructive",
       });
     }
-  }, [isAdmin, navigate, toast]);
+  }, [userRole, navigate, toast]);
   
   useEffect(() => {
     fetchUsers();

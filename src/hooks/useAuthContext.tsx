@@ -5,6 +5,7 @@ import { useAuthMethods } from "./auth/useAuthMethods";
 import { useRoleChecks } from "./auth/useRoleChecks";
 import { AuthContextType } from "./auth/types";
 import { Session } from "@supabase/supabase-js";
+import { UiRole } from "@/types/user.types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -28,8 +29,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin, 
     isViewer,
     isEditor,
-    canEdit 
+    canEdit,
+    hasAccessLevel 
   } = useRoleChecks(userRole);
+  
+  console.log("AuthProvider - userRole:", userRole);
 
   // Wrap the signIn function to set loading
   const wrappedSignIn = async (
@@ -70,7 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAdmin,
         isViewer,
         isEditor,
-        canEdit
+        canEdit,
+        hasAccessLevel
       }}
     >
       {children}

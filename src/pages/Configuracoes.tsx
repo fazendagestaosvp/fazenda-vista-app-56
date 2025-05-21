@@ -6,8 +6,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Shield, Eye, Users, UserCog, User } from "lucide-react";
 
 const Configuracoes = () => {
-  const { isAdmin } = useAuth();
+  const { userRole } = useAuth();
   const navigate = useNavigate();
+
+  console.log("UserRole em Configuracoes:", userRole);
+  
+  // Verificação direta do papel do usuário para exibir funcionalidades administrativas
+  const isAdminUser = userRole === "admin";
 
   return (
     <div className="space-y-6">
@@ -70,7 +75,7 @@ const Configuracoes = () => {
           </CardContent>
         </Card>
 
-        {isAdmin() && (
+        {isAdminUser && (
           <Card className="border-farm/20 md:col-span-2 lg:col-span-3">
             <CardHeader>
               <CardTitle className="flex items-center text-farm">
