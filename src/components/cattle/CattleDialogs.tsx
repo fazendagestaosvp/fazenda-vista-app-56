@@ -12,7 +12,7 @@ interface CattleDialogsProps {
   isEditDialogOpen: boolean;
   setIsEditDialogOpen: (value: boolean) => void;
   currentCattle: any;
-  onAddSuccess: () => void;
+  onAddSuccess: (newAnimal: any) => void;
   onEditSuccess: (updatedAnimal: any) => void;
 }
 
