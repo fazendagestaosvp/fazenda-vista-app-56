@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -36,6 +37,7 @@ import {
 import UserAddDialog from "./UserAddDialog";
 import UserEditDialog from "./UserEditDialog";
 import { fetchUsers, removeUser, updateUser } from "@/services/userService";
+import { UiRole } from "@/types/user.types";
 
 interface User {
   id: string;
@@ -76,7 +78,7 @@ export default function UserManagementTable() {
   const handleRoleChange = async (userId: string, newRole: string) => {
     const result = await updateUser({
       userId,
-      role: newRole as "admin" | "editor" | "viewer"
+      role: newRole as UiRole
     });
 
     if (result.success) {

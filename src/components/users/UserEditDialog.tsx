@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -19,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateUser } from "@/services/userService";
+import { UiRole } from "@/types/user.types";
 
 interface User {
   id: string;
@@ -36,14 +38,14 @@ interface UserEditDialogProps {
 
 const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogProps) => {
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<"admin" | "editor" | "viewer">("viewer");
+  const [role, setRole] = useState<UiRole>("viewer");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
       setFullName(user.name);
-      setRole(user.role as "admin" | "editor" | "viewer");
+      setRole(user.role as UiRole);
     }
   }, [user]);
 
@@ -121,7 +123,7 @@ const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogP
               </Label>
               <Select
                 value={role}
-                onValueChange={(value: "admin" | "editor" | "viewer") => setRole(value)}
+                onValueChange={(value: UiRole) => setRole(value)}
                 disabled={isLoading}
               >
                 <SelectTrigger className="col-span-3">

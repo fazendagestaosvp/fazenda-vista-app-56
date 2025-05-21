@@ -1,18 +1,26 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Profile, DbRole, dbToUiRole, uiToDbRole } from "@/types/user.types";
+import { Profile, DbRole, dbToUiRole, uiToDbRole, UiRole } from "@/types/user.types";
+import { VerifyOtpParams } from "@supabase/supabase-js";
 
 // Buscar todos os usuários com seus respectivos perfis
 export const getAllUsersWithProfiles = async () => {
   try {
-    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+    const { data, error: usersError } = await supabase.auth.admin.listUsers();
 
     if (usersError) {
       console.error("Erro ao listar usuários:", usersError);
       throw usersError;
     }
 
+    // Ensure data.users exists and is an array before mapping
+    if (!data || !data.users || !Array.isArray(data.users)) {
+      console.error("Dados de usuários inválidos ou vazios");
+      return [];
+    }
+
     const usersWithProfiles = await Promise.all(
-      users.map(async (user) => {
+      data.users.map(async (user) => {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -359,21 +367,22 @@ export const updateUserEmail = async (newEmail: string) => {
 };
 
 // Service function to send an email verification request
-export const verifyUserEmail = async (email: string) => {
+export const verifyUserEmail = async (email: string, token: string) => {
   try {
     const { data, error } = await supabase.auth.verifyOtp({
       email,
+      token,
       type: "email",
-    });
+    } as VerifyOtpParams);
 
     if (error) {
-      console.error("Erro ao enviar email de verificação:", error);
+      console.error("Erro ao verificar email:", error);
       throw error;
     }
 
     return data;
   } catch (error) {
-    console.error("Erro ao enviar email de verificação:", error);
+    console.error("Erro ao verificar email:", error);
     throw error;
   }
 };
@@ -445,5 +454,62 @@ export const getSessionUser = async () => {
   } catch (error) {
     console.error("Erro ao obter informações do usuário da sessão:", error);
     return null;
+  }
+};
+
+// New functions to support user management components
+export const fetchUsers = async () => {
+  try {
+    const usersWithProfiles = await getAllUsersWithProfiles();
+    
+    const formattedUsers = usersWithProfiles.map(({ user, profile }) => ({
+      id: user.id,
+      name: profile?.full_name || user.email || 'Usuário sem nome',
+      email: user.email,
+      role: dbToUiRole(user.app_metadata?.role as DbRole || 'viewer'),
+      created_at: new Date(user.created_at).toLocaleDateString('pt-BR')
+    }));
+    
+    return { success: true, data: formattedUsers };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erro ao buscar usuários' };
+  }
+};
+
+export const updateUser = async ({ 
+  userId, 
+  fullName, 
+  role 
+}: { 
+  userId: string; 
+  fullName?: string; 
+  role?: UiRole 
+}) => {
+  try {
+    // Convert UI role to DB role if provided
+    const dbRole = role ? uiToDbRole(role) : undefined;
+    
+    // Update profile if fullName is provided
+    if (fullName) {
+      await updateProfile(userId, { full_name: fullName });
+    }
+    
+    // Update role if provided
+    if (dbRole) {
+      await updateUserRole(userId, dbRole);
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erro ao atualizar usuário' };
+  }
+};
+
+export const removeUser = async (userId: string) => {
+  try {
+    await deleteUser(userId);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erro ao remover usuário' };
   }
 };
