@@ -26,7 +26,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
       const result = await signOut();
       
       // Executar callback personalizado, se fornecido
-      if (result.success && onLogoutSuccess) {
+      if (result && result.success && onLogoutSuccess) {
         onLogoutSuccess();
       }
     } catch (error) {

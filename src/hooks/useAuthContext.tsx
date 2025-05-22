@@ -3,7 +3,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useAuthProvider } from "./auth/useAuthProvider";
 import { useAuthMethods } from "./auth/useAuthMethods";
 import { useRoleChecks } from "./auth/useRoleChecks";
-import { AuthContextType } from "./auth/types";
+import { AuthContextType, AuthResult } from "./auth/types";
 import { Session } from "@supabase/supabase-js";
 import { UiRole } from "@/types/user.types";
 import { useNavigate } from "react-router-dom";
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Wrap the signUp function to set loading and handle navigation
-  const wrappedSignUp = async (email: string, password: string, fullName: string) => {
+  const wrappedSignUp = async (email: string, password: string, fullName: string): Promise<AuthResult> => {
     setLoading(true);
     try {
       const result = await signUp(email, password, fullName);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   // Wrap signOut to handle navigation
-  const wrappedSignOut = async () => {
+  const wrappedSignOut = async (): Promise<AuthResult> => {
     const result = await signOut();
     if (result.success) {
       navigate("/login");
