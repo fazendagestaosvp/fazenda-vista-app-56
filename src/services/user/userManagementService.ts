@@ -134,7 +134,7 @@ export const fetchUsers = async (): Promise<{ success: boolean; data?: any[]; er
       { user_ids: userIds }
     );
     
-    if (emailsError) throw emailsError;
+    if (emailsErrors) throw emailsError;
 
     const { data: userRoles, error: rolesError } = await supabase
       .from('user_roles')
