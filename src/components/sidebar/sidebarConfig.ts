@@ -10,7 +10,8 @@ import {
   Activity, 
   Baby, 
   UsersIcon, 
-  UserCog
+  UserCog,
+  Shield
 } from "lucide-react";
 
 export type SidebarLinkType = {
@@ -61,7 +62,7 @@ export const sidebarConfig: SidebarSectionType[] = [
     links: mainLinks
   },
   {
-    title: "Administração",
+    title: "ADMINISTRAÇÃO",
     links: adminLinks
   }
 ];

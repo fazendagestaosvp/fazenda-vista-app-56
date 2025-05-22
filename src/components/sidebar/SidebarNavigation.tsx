@@ -17,8 +17,6 @@ const SidebarNavigation = ({ isSidebarOpen }: SidebarNavigationProps) => {
   const [hoverItem, setHoverItem] = useState<string | null>(null);
   const { userRole } = useAuth();
   
-  console.log("UserRole atual no SidebarNavigation:", userRole);
-  
   // Obter seções da barra lateral filtradas pelo papel do usuário
   const sidebarSections = getSidebarSectionsByRole(userRole);
 

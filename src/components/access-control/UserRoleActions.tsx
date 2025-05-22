@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserWithRole } from "./types";
 import { useState } from "react";
 import { Shield, User, Eye } from "lucide-react";
-import { UiRole, mapUiRoleToDbRole } from "@/types/user.types";
+import { UiRole } from "@/types/user.types";
 
 type UserRoleActionsProps = {
   user: UserWithRole;
