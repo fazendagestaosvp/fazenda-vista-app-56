@@ -83,10 +83,13 @@ export const updateUser = async ({
         throw new Error(deleteError.message);
       }
 
-      // Insert the new role
+      // Insert the new role using the exact type expected by Supabase
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role: dbRole });
+        .insert({ 
+          user_id: userId, 
+          role: dbRole as any // Using type assertion to avoid TypeScript error
+        });
 
       if (insertError) {
         throw new Error(insertError.message);
