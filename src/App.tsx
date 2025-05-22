@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuthContext";
@@ -39,41 +39,39 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <Routes>
-            {/* Rotas públicas */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+        <Routes>
+          {/* Rotas públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Rotas protegidas (requer autenticação) */}
+          <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Navigate to="/" replace />} />
+            <Route path="gestao-gado" element={<GestaoGado />} />
+            <Route path="gestao-cavalos" element={<GestaoCavalos />} />
+            <Route path="reproducao" element={<Reproducao />} />
+            <Route path="historico-saude" element={<HistoricoSaude />} />
+            <Route path="relatorios" element={<Relatorios />} />
+            <Route path="calendario" element={<Calendario />} />
+            <Route path="documentos" element={<Documentos />} />
             
-            {/* Rotas protegidas (requer autenticação) */}
-            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
-              <Route path="dashboard" element={<Navigate to="/" replace />} />
-              <Route path="gestao-gado" element={<GestaoGado />} />
-              <Route path="gestao-cavalos" element={<GestaoCavalos />} />
-              <Route path="reproducao" element={<Reproducao />} />
-              <Route path="historico-saude" element={<HistoricoSaude />} />
-              <Route path="relatorios" element={<Relatorios />} />
-              <Route path="calendario" element={<Calendario />} />
-              <Route path="documentos" element={<Documentos />} />
-              
-              {/* Configurações */}
-              <Route path="configuracoes" element={<Configuracoes />} />
-              <Route path="profile" element={<UserProfile />} />
-              <Route path="security" element={<SecuritySettings />} />
-              <Route path="notifications" element={<NotificationSettings />} />
-              
-              {/* Rotas de administração */}
-              <Route path="admin/users" element={<UserManagement />} />
-              <Route path="admin/access-control" element={<UserAccessControl />} />
-              <Route path="admin/promote" element={<AdminPromote />} />
-              <Route path="admin/promote-viewer" element={<AdminPromoteViewer />} />
-            </Route>
+            {/* Configurações */}
+            <Route path="configuracoes" element={<Configuracoes />} />
+            <Route path="profile" element={<UserProfile />} />
+            <Route path="security" element={<SecuritySettings />} />
+            <Route path="notifications" element={<NotificationSettings />} />
             
-            {/* Rota para página não encontrada */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
+            {/* Rotas de administração */}
+            <Route path="admin/users" element={<UserManagement />} />
+            <Route path="admin/access-control" element={<UserAccessControl />} />
+            <Route path="admin/promote" element={<AdminPromote />} />
+            <Route path="admin/promote-viewer" element={<AdminPromoteViewer />} />
+          </Route>
+          
+          {/* Rota para página não encontrada */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>

@@ -6,10 +6,13 @@ import { useRoleChecks } from "./auth/useRoleChecks";
 import { AuthContextType } from "./auth/types";
 import { Session } from "@supabase/supabase-js";
 import { UiRole } from "@/types/user.types";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const navigate = useNavigate(); // Now this is used within the Router context
+  
   const { 
     session, 
     user, 
@@ -36,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   console.log("AuthProvider - userRole:", userRole);
   console.log("AuthProvider - isAdmin:", isAdmin());
 
-  // Wrap the signIn function to set loading
+  // Wrap the signIn function to set loading and handle navigation
   const wrappedSignIn = async (
     email: string, 
     password: string, 
@@ -45,20 +48,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ) => {
     setLoading(true);
     try {
-      await signIn(email, password, onSuccess, onError);
+      await signIn(email, password, 
+        // Custom success handler that includes navigation
+        () => {
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            navigate("/dashboard");
+          }
+        }, 
+        onError
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Wrap the signUp function to set loading
+  // Wrap the signUp function to set loading and handle navigation
   const wrappedSignUp = async (email: string, password: string, fullName: string) => {
     setLoading(true);
     try {
-      await signUp(email, password, fullName);
+      const result = await signUp(email, password, fullName);
+      if (result.success) {
+        navigate("/login");
+      }
+      return result;
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Wrap signOut to handle navigation
+  const wrappedSignOut = async () => {
+    const result = await signOut();
+    if (result.success) {
+      navigate("/login");
+    }
+    return result;
   };
 
   return (
@@ -70,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
         signIn: wrappedSignIn,
         signUp: wrappedSignUp,
-        signOut,
+        signOut: wrappedSignOut,
         resetPassword,
         isAdmin,
         isViewer,

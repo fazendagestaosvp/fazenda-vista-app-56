@@ -2,12 +2,12 @@
 // Update import paths to use the refactored services
 import { resetUserPassword, signInUser, signOutUser, signUpUser } from "@/services/user";
 import { initUserProfile } from "@/services/user";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useAuthMethods = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Remove navigate from here as it causes the Router context issue
 
   const signIn = async (
     email: string,
@@ -60,8 +60,8 @@ export const useAuthMethods = () => {
           title: "Registro realizado",
           description: "Confirme seu email para ativar a conta!",
         });
-        navigate("/login");
-        return;
+        // Don't navigate here, instead let the caller handle navigation
+        return { success: true };
       }
 
       toast({
@@ -69,6 +69,7 @@ export const useAuthMethods = () => {
         description: "Tente novamente ou entre em contato com o suporte.",
         variant: "destructive",
       });
+      return { success: false, error: "Erro ao registrar usuário" };
     } catch (error: any) {
       console.error("Erro durante o registro:", error);
       toast({
@@ -76,6 +77,7 @@ export const useAuthMethods = () => {
         description: error.message || "Ocorreu um erro durante o registro.",
         variant: "destructive",
       });
+      return { success: false, error: error.message };
     }
   };
 
@@ -88,8 +90,8 @@ export const useAuthMethods = () => {
           title: "Você saiu da sua conta",
           description: "Logout realizado com sucesso!",
         });
-        navigate("/login");
-        return;
+        // Return success and let the caller handle navigation
+        return { success: true };
       }
 
       toast({
@@ -97,6 +99,7 @@ export const useAuthMethods = () => {
         description: "Não foi possível sair da sua conta.",
         variant: "destructive",
       });
+      return { success: false, error: "Não foi possível sair da sua conta" };
     } catch (error: any) {
       console.error("Erro durante o logout:", error);
       toast({
@@ -104,6 +107,7 @@ export const useAuthMethods = () => {
         description: error.message || "Ocorreu um erro durante o logout.",
         variant: "destructive",
       });
+      return { success: false, error: error.message };
     }
   };
 

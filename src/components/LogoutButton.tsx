@@ -2,9 +2,7 @@
 import React from "react";
 import { Button, ButtonProps } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
-import { signOutUser } from "@/services/user";
+import { useAuth } from "@/hooks/useAuthContext";
 
 interface LogoutButtonProps extends ButtonProps {
   redirectTo?: string;
@@ -16,45 +14,23 @@ interface LogoutButtonProps extends ButtonProps {
  * Botão de logout que pode ser usado em qualquer parte da aplicação
  */
 const LogoutButton: React.FC<LogoutButtonProps> = ({
-  redirectTo = "/login",
   showIcon = true,
   onLogoutSuccess,
   children,
   ...props
 }) => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      const result = await signOutUser();
+      const result = await signOut();
       
-      if (result.success) {
-        toast({
-          title: "Logout realizado",
-          description: "Você saiu da sua conta com sucesso."
-        });
-        
-        // Executar callback personalizado, se fornecido
-        if (onLogoutSuccess) {
-          onLogoutSuccess();
-        }
-        
-        // Redirecionar para a página especificada
-        navigate(redirectTo);
-      } else {
-        toast({
-          title: "Erro ao fazer logout",
-          description: result.error || "Ocorreu um erro durante o logout",
-          variant: "destructive"
-        });
+      // Executar callback personalizado, se fornecido
+      if (result.success && onLogoutSuccess) {
+        onLogoutSuccess();
       }
-    } catch (error: any) {
-      toast({
-        title: "Erro ao fazer logout",
-        description: error.message || "Ocorreu um erro durante o logout",
-        variant: "destructive"
-      });
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
     }
   };
 
