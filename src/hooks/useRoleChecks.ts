@@ -1,5 +1,7 @@
 
-export function useRoleChecks(userRole: "admin" | "editor" | "viewer" | null) {
+import { UiRole } from "@/types/user.types";
+
+export function useRoleChecks(userRole: UiRole | null) {
   // Verificar se o usuário é administrador
   const isAdmin = () => userRole === "admin";
   
@@ -13,7 +15,7 @@ export function useRoleChecks(userRole: "admin" | "editor" | "viewer" | null) {
   const canEdit = () => userRole === "admin" || userRole === "editor";
 
   // Verificar se o usuário tem acesso a uma determinada página baseada no nível mínimo
-  const hasAccessLevel = (minimumLevel: "admin" | "editor" | "viewer") => {
+  const hasAccessLevel = (minimumLevel: UiRole) => {
     if (!userRole) return false;
     
     if (minimumLevel === "admin") {

@@ -4,22 +4,40 @@ import { DbRole, UiRole, mapUiRoleToDbRole, mapDbRoleToUiRole } from "@/types/us
 
 export const fetchUsersWithRoles = async (): Promise<{ data: any[] | null; error: any }> => {
   try {
-    const { data, error } = await supabase
+    // First fetch the user roles
+    const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
-      .select('*, user:profiles(email)')
+      .select('user_id, role')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching users with roles:', error);
-      return { data: null, error };
+    if (roleError) {
+      console.error('Error fetching user roles:', roleError);
+      return { data: null, error: roleError };
     }
 
-    // Map DbRole to UiRole for each user
-    const mappedData = data.map(item => ({
-      ...item,
-      role: mapDbRoleToUiRole(item.role as DbRole),
-      email: item.user?.email,
-    }));
+    // Get user IDs to fetch their profiles and emails
+    const userIds = roleData.map(item => item.user_id);
+    
+    // Fetch user emails
+    const { data: emailData, error: emailError } = await supabase.rpc(
+      'get_user_emails',
+      { user_ids: userIds }
+    );
+    
+    if (emailError) {
+      console.error('Error fetching user emails:', emailError);
+      return { data: null, error: emailError };
+    }
+
+    // Combine role and email data
+    const mappedData = roleData.map(roleItem => {
+      const userEmail = emailData.find(e => e.id === roleItem.user_id);
+      return {
+        ...roleItem,
+        role: mapDbRoleToUiRole(roleItem.role as DbRole),
+        email: userEmail ? userEmail.email : 'Unknown',
+      };
+    });
 
     return { data: mappedData, error: null };
   } catch (error: any) {
@@ -115,12 +133,15 @@ export const fetchUsers = async (): Promise<{ success: boolean; data?: any[]; er
         const dbRole = (userRole?.role || 'viewer') as DbRole;
         const uiRole = mapDbRoleToUiRole(dbRole);
 
+        // Use a fixed date format if created_at isn't available
+        const createdAt = new Date().toISOString();
+
         return {
           id: userEmail.id,
           name: userProfile?.full_name || 'Sem nome',
           email: userEmail.email,
           role: uiRole,
-          created_at: userRole?.created_at || new Date().toISOString(),
+          created_at: createdAt,
         };
       });
 

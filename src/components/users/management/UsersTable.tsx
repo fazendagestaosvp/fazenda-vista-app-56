@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/table";
 import UserRoleSelect from "./UserRoleSelect";
 import UserActionsMenu from "./UserActionsMenu";
+import { UiRole } from "@/types/user.types";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: UiRole;
   created_at: string;
 }
 
