@@ -17,8 +17,12 @@ const SidebarNavigation = ({ isSidebarOpen }: SidebarNavigationProps) => {
   const [hoverItem, setHoverItem] = useState<string | null>(null);
   const { userRole } = useAuth();
   
+  console.log("SidebarNavigation - userRole:", userRole);
+  
   // Obter seções da barra lateral filtradas pelo papel do usuário
   const sidebarSections = getSidebarSectionsByRole(userRole);
+  
+  console.log("SidebarNavigation - sidebarSections:", sidebarSections);
 
   return (
     <div className="flex-1 py-4 overflow-y-auto">

@@ -46,13 +46,13 @@ const adminLinks: SidebarLinkType[] = [
     icon: UsersIcon, 
     label: "Usuários", 
     to: "/admin/users", 
-    requiredRole: "admin" 
+    roles: ["admin"]
   },
   { 
     icon: UserCog, 
     label: "Controle de Acesso", 
     to: "/admin/access-control", 
-    requiredRole: "admin" 
+    roles: ["admin"] 
   }
 ];
 
@@ -74,7 +74,10 @@ export const filterLinksByRole = (
 ): SidebarLinkType[] => {
   if (!userRole) return [];
 
-  return links.filter(link => {
+  console.log("filterLinksByRole - userRole:", userRole);
+  console.log("filterLinksByRole - links antes do filtro:", links);
+
+  const filteredLinks = links.filter(link => {
     // If no role requirements are specified, show to all authenticated users
     if (!link.requiredRole && !link.roles) return true;
     
@@ -91,6 +94,9 @@ export const filterLinksByRole = (
     
     return true;
   });
+
+  console.log("filterLinksByRole - links após filtro:", filteredLinks);
+  return filteredLinks;
 };
 
 // Get sections filtered by user role
@@ -100,12 +106,20 @@ export const getSidebarSectionsByRole = (
   // Return empty array if no user role is provided
   if (!userRole) return [];
   
+  console.log("getSidebarSectionsByRole - userRole:", userRole);
+  
   // Filter each section's links based on the user's role
-  return sidebarConfig
-    .map(section => ({
-      ...section,
-      links: filterLinksByRole(section.links, userRole)
-    }))
+  const sections = sidebarConfig
+    .map(section => {
+      const filteredLinks = filterLinksByRole(section.links, userRole);
+      return {
+        ...section,
+        links: filteredLinks
+      };
+    })
     // Only include sections that have at least one link after filtering
     .filter(section => section.links.length > 0);
+    
+  console.log("getSidebarSectionsByRole - sections filtradas:", sections);
+  return sections;
 };

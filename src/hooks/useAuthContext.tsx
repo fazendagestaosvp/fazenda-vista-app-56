@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   } = useRoleChecks(userRole);
   
   console.log("AuthProvider - userRole:", userRole);
+  console.log("AuthProvider - isAdmin:", isAdmin());
 
   // Wrap the signIn function to set loading
   const wrappedSignIn = async (

@@ -4,18 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import UserManagementTable from "@/components/users/UserManagementTable";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const UserManagement = () => {
-  const { userRole } = useAuth();
+  const { userRole, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  console.log("UserRole em UserManagement:", userRole);
+  console.log("UserManagement - userRole:", userRole);
+  console.log("UserManagement - isAdmin:", isAdmin());
   
   // Verificar se é admin e redirecionar se não for
   useEffect(() => {
-    if (userRole !== "admin") {
+    if (!isAdmin()) {
       navigate("/dashboard");
       toast({
         title: "Acesso restrito",
@@ -23,7 +24,7 @@ const UserManagement = () => {
         variant: "destructive",
       });
     }
-  }, [userRole, navigate, toast]);
+  }, [userRole, navigate, toast, isAdmin]);
   
   return (
     <div className="container mx-auto py-6">

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import { DbRole, mapDbRoleToUiRole } from "@/types/user.types";
@@ -20,14 +20,15 @@ const UserAccessControl = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-  const { userRole } = useAuth();
+  const { userRole, isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  console.log("UserRole em UserAccessControl:", userRole);
+  console.log("UserAccessControl - userRole:", userRole);
+  console.log("UserAccessControl - isAdmin:", isAdmin());
   
   // Verificar se é admin e redirecionar se não for
   useEffect(() => {
-    if (userRole !== "admin") {
+    if (!isAdmin()) {
       navigate("/dashboard");
       toast({
         title: "Acesso restrito",
@@ -35,7 +36,7 @@ const UserAccessControl = () => {
         variant: "destructive",
       });
     }
-  }, [userRole, navigate, toast]);
+  }, [userRole, navigate, toast, isAdmin]);
   
   useEffect(() => {
     fetchUsers();
