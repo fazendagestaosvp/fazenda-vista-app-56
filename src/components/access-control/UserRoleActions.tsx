@@ -1,10 +1,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { UserWithRole } from "./types";
 import { useState } from "react";
 import { Shield, User, Eye } from "lucide-react";
+import { UiRole, mapUiRoleToDbRole } from "@/types/user.types";
 
 type UserRoleActionsProps = {
   user: UserWithRole;
@@ -14,9 +15,9 @@ type UserRoleActionsProps = {
 const UserRoleActions = ({ user, onRoleChange }: UserRoleActionsProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeRole, setActiveRole] = useState(user.role);
+  const [activeRole, setActiveRole] = useState<UiRole>(user.role as UiRole);
   
-  const updateUserRole = async (newRole: string) => {
+  const updateUserRole = async (newRole: UiRole) => {
     if (newRole === activeRole) return; // Skip if role hasn't changed
     setIsLoading(true);
     

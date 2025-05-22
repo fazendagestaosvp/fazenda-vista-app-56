@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -13,21 +14,21 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface UserRoleSelectProps {
   userId: string;
-  currentRole: string;
+  currentRole: UiRole;
 }
 
 export default function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
-  const [role, setRole] = useState<string>(currentRole);
+  const [role, setRole] = useState<UiRole>(currentRole);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleRoleChange = async (newRole: string) => {
+  const handleRoleChange = async (newRole: UiRole) => {
     setIsSubmitting(true);
     
     try {
       const result = await updateUser({
         userId,
-        role: newRole as UiRole
+        role: newRole
       });
 
       if (result.success) {
@@ -58,7 +59,7 @@ export default function UserRoleSelect({ userId, currentRole }: UserRoleSelectPr
   return (
     <Select
       value={role}
-      onValueChange={(value) => handleRoleChange(value)}
+      onValueChange={(value) => handleRoleChange(value as UiRole)}
       disabled={isSubmitting}
     >
       <SelectTrigger className="w-[130px]">

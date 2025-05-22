@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Camera, Upload, Check, Syringe } from "lucide-react";
+import { Camera, Upload, Check, Syringe, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,10 +45,35 @@ export function HorseDetailsDialog({
         };
         
         onUpdateHorse(updatedHorse);
+        
+        // Notify user
+        toast({
+          title: `Imagem ${type === 'sire' ? 'do pai' : 'da mãe'} adicionada`,
+          description: "A imagem foi salva com sucesso."
+        });
       };
       
       reader.readAsDataURL(file);
     }
+  };
+  
+  const handleRemoveImage = (type: 'sire' | 'dam') => {
+    if (!selectedHorse) return;
+    
+    // Create updated horse with image removed
+    const updatedHorse = {
+      ...selectedHorse,
+      [type === 'sire' ? 'sireImage' : 'damImage']: ""
+    };
+    
+    // Update horse data
+    onUpdateHorse(updatedHorse);
+    
+    // Notify user
+    toast({
+      title: `Imagem ${type === 'sire' ? 'do pai' : 'da mãe'} removida`,
+      description: "A imagem foi removida com sucesso."
+    });
   };
 
   const handleToggleVaccination = (vaccinationName: string, isCustom: boolean = false) => {
@@ -180,14 +205,23 @@ export function HorseDetailsDialog({
                         alt="Pai do cavalo"
                         className="w-full h-full object-cover rounded-md"
                       />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute bottom-2 right-2"
-                        onClick={() => document.getElementById('sire-upload')?.click()}
-                      >
-                        <Camera className="h-4 w-4" />
-                      </Button>
+                      <div className="absolute bottom-2 right-2 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => document.getElementById('sire-upload')?.click()}
+                          className="bg-white"
+                        >
+                          <Camera className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleRemoveImage('sire')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <input
                         id="sire-upload"
                         type="file"
@@ -233,14 +267,23 @@ export function HorseDetailsDialog({
                         alt="Mãe do cavalo"
                         className="w-full h-full object-cover rounded-md"
                       />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute bottom-2 right-2"
-                        onClick={() => document.getElementById('dam-upload')?.click()}
-                      >
-                        <Camera className="h-4 w-4" />
-                      </Button>
+                      <div className="absolute bottom-2 right-2 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-white"
+                          onClick={() => document.getElementById('dam-upload')?.click()}
+                        >
+                          <Camera className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleRemoveImage('dam')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <input
                         id="dam-upload"
                         type="file"
