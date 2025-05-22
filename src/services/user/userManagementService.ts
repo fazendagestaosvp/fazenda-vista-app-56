@@ -86,16 +86,13 @@ export const updateUser = async ({
         throw new Error(deleteError.message);
       }
 
-      // Create a properly typed object for the insert
-      const roleData: { user_id: string; role: string } = {
-        user_id: userId,
-        role: dbRole
-      };
-      
-      // Insert the role record
+      // Insert the new role with the correct type
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert(roleData);
+        .insert({
+          user_id: userId,
+          role: dbRole as "admin" | "user" | "viewer" // Explicitly cast to expected type
+        });
 
       if (insertError) {
         console.error("Error inserting role:", insertError);
