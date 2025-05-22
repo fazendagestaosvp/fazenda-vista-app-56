@@ -86,26 +86,24 @@ export const updateUser = async ({
         throw new Error(deleteError.message);
       }
 
-      // Use type assertion to match the expected enum type
-      // We need to cast to the specific literal type expected by the Supabase client
-      type SupabaseRoleType = "admin" | "editor" | "viewer";
-      let supabaseRole: SupabaseRoleType;
+      // Map roles to what Supabase expects in the database
+      // This is crucial for type compatibility with Supabase's expected types
+      let dbRoleValue: "admin" | "editor" | "viewer";
       
-      // Map DbRole to the expected Supabase role format
       if (dbRole === "admin") {
-        supabaseRole = "admin";
+        dbRoleValue = "admin";
       } else if (dbRole === "user") {
-        supabaseRole = "editor";
+        dbRoleValue = "editor"; // 'user' in our logic maps to 'editor' in Supabase
       } else {
-        supabaseRole = "viewer";
+        dbRoleValue = "viewer";
       }
       
-      // Insert with the properly typed role
+      // Insert with the correctly typed role value
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert({ 
           user_id: userId, 
-          role: supabaseRole 
+          role: dbRoleValue
         });
 
       if (insertError) {
