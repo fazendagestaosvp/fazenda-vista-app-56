@@ -87,11 +87,22 @@ export const updateUser = async ({
       }
 
       // Insert the new role with the correct type
+      // We need to ensure the role matches exactly what the database expects
+      let roleToInsert;
+      
+      if (dbRole === "admin") {
+        roleToInsert = "admin";
+      } else if (dbRole === "user") {
+        roleToInsert = "user";
+      } else {
+        roleToInsert = "viewer";
+      }
+
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert({
           user_id: userId,
-          role: dbRole as "admin" | "user" | "viewer" // Explicitly cast to expected type
+          role: roleToInsert
         });
 
       if (insertError) {
