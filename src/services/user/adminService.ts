@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DbRole, dbToUiRole } from "@/types/user.types";
+import { DbRole, mapDbRoleToUiRole } from "@/types/user.types";
 import { UpdateUserAdminProps } from "./types";
 
 // Buscar todos os usuários com seus respectivos perfis
@@ -158,7 +158,7 @@ export const getCompleteUser = async (userId: string) => {
     return {
       ...userData.user,
       profile,
-      role: dbToUiRole(userData.user.app_metadata.role as DbRole),
+      role: mapDbRoleToUiRole(userData.user.app_metadata.role as DbRole),
     };
   } catch (error) {
     console.error("Erro ao obter informações completas do usuário:", error);

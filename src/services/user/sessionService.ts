@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DbRole, dbToUiRole } from "@/types/user.types";
+import { DbRole, mapDbRoleToUiRole } from "@/types/user.types";
 import { getUserProfile } from "./profileService";
 
 // Service function to get the current user session
@@ -85,7 +85,7 @@ export const getSessionUser = async () => {
     // Uncomment this line if you need to force admin role for testing
     // roleValue = 'admin';
     
-    const uiRole = dbToUiRole(roleValue);
+    const uiRole = mapDbRoleToUiRole(roleValue);
     console.log("Final UI role:", uiRole);
     
     return {

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
-import { DbRole, dbToUiRole } from "@/types/user.types";
+import { DbRole, mapDbRoleToUiRole } from "@/types/user.types";
 import { UserWithRole } from "@/components/access-control/types";
 import UserSearchInput from "@/components/access-control/UserSearchInput";
 import UserRolesTable from "@/components/access-control/UserRolesTable";
@@ -94,7 +94,7 @@ const UserAccessControl = () => {
           // Encontrar o role do usuário, se existir
           const userRole = userRoles?.find(role => role.user_id === userEmail.id);
           const dbRole = userRole?.role as DbRole || 'viewer';
-          const uiRole = dbToUiRole(dbRole);
+          const uiRole = mapDbRoleToUiRole(dbRole);
 
           return {
             id: userEmail.id,

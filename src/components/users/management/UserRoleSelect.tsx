@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import { updateUser } from "@/services/user/userManagementService";
 import { UiRole } from "@/types/user.types";
-import { supabase } from "@/integrations/supabase/client";
 
 interface UserRoleSelectProps {
   userId: string;

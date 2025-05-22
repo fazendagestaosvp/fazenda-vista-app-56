@@ -1,3 +1,4 @@
+
 export type UiRole = "admin" | "editor" | "viewer";
 export type DbRole = "admin" | "user" | "viewer";
 
@@ -10,3 +11,7 @@ export const mapUiRoleToDbRole = (uiRole: UiRole): DbRole => {
   if (uiRole === "editor") return "user";
   return uiRole as DbRole;
 };
+
+// Alias for mapDbRoleToUiRole for backward compatibility
+export const dbToUiRole = mapDbRoleToUiRole;
+

@@ -130,7 +130,7 @@ const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogP
               </Label>
               <Select
                 value={role}
-                onValueChange={(value: UiRole) => setRole(value)}
+                onValueChange={(value: any) => setRole(value as UiRole)}
                 disabled={isLoading}
               >
                 <SelectTrigger className="col-span-3">

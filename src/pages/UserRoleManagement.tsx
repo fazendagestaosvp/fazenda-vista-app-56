@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import { Eye, Shield, User } from "lucide-react";
-import { DbRole, UiRole, dbToUiRole } from "@/types/user.types";
+import { DbRole, UiRole, mapDbRoleToUiRole } from "@/types/user.types";
 
 type UserWithRole = {
   id: string;
@@ -48,7 +48,7 @@ const UserRoleManagement = () => {
         const usersWithRoles = data.map((user: any) => {
           // Map DB role to UI role for consistency
           const dbRole = user.user_roles?.role as DbRole || 'viewer';
-          const uiRole = dbToUiRole(dbRole);
+          const uiRole = mapDbRoleToUiRole(dbRole);
 
           return {
             id: user.id,
