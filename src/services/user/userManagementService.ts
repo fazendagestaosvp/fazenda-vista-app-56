@@ -56,6 +56,8 @@ export const updateUser = async ({
   fullName?: string;
 }): Promise<{ success: boolean; error?: string }> => {
   try {
+    console.log("Updating user:", { userId, role, fullName });
+    
     // Update profile if fullName is provided
     if (fullName) {
       const { error: profileError } = await supabase
@@ -72,6 +74,7 @@ export const updateUser = async ({
     if (role) {
       // Convert UiRole to DbRole for database operations
       const dbRole = mapUiRoleToDbRole(role);
+      console.log("Mapped role:", { uiRole: role, dbRole });
       
       // Delete any existing roles
       const { error: deleteError } = await supabase
@@ -83,15 +86,19 @@ export const updateUser = async ({
         throw new Error(deleteError.message);
       }
 
-      // Insert the new role using the exact type expected by Supabase
+      // Create a properly typed object for the insert
+      const roleData: { user_id: string; role: string } = {
+        user_id: userId,
+        role: dbRole
+      };
+      
+      // Insert the role record
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert({ 
-          user_id: userId, 
-          role: dbRole as any // Using type assertion to avoid TypeScript error
-        });
+        .insert(roleData);
 
       if (insertError) {
+        console.error("Error inserting role:", insertError);
         throw new Error(insertError.message);
       }
     }

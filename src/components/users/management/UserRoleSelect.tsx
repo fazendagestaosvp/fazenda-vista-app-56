@@ -25,6 +25,7 @@ export default function UserRoleSelect({ userId, currentRole }: UserRoleSelectPr
     setIsSubmitting(true);
     
     try {
+      console.log("Atualizando papel do usuário:", { userId, newRole });
       const result = await updateUser({
         userId,
         role: newRole
@@ -45,6 +46,7 @@ export default function UserRoleSelect({ userId, currentRole }: UserRoleSelectPr
         });
       }
     } catch (error: any) {
+      console.error("Erro ao atualizar papel:", error);
       toast({
         title: "Erro ao atualizar papel",
         description: error.message || "Ocorreu um erro ao atualizar o papel do usuário",
