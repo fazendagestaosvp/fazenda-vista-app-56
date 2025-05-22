@@ -84,6 +84,187 @@ const initialHorses = [
     ],
     customVaccinations: [],
   },
+  // Adding more sample horses for pagination testing
+  {
+    id: "HC-104",
+    name: "Estrela Guia",
+    age: 6,
+    breed: "Árabe",
+    color: "Branco",
+    gender: "Fêmea",
+    status: "Ativo - Domado",
+    sire: "Sol (HC-022)",
+    dam: "Lua (HC-018)",
+    birthDate: new Date(2019, 2, 25),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: new Date(2023, 5, 15),
+      applied: true
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-105",
+    name: "Tornado",
+    age: 4,
+    breed: "Quarto de Milha",
+    color: "Castanho",
+    gender: "Macho",
+    status: "Em treinamento - Em doma",
+    sire: "Furacão (HC-045)",
+    dam: "Brisa (HC-039)",
+    birthDate: new Date(2021, 7, 10),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: null,
+      applied: false
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-106",
+    name: "Tempestade",
+    age: 8,
+    breed: "Mangalarga",
+    color: "Preto",
+    gender: "Macho",
+    status: "Ativo - Domado",
+    sire: "Raio (HC-023)",
+    dam: "Trovão (HC-027)",
+    birthDate: new Date(2017, 4, 18),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: new Date(2023, 3, 5),
+      applied: true
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-107",
+    name: "Sereno",
+    age: 5,
+    breed: "Crioulo",
+    color: "Baio",
+    gender: "Macho",
+    status: "Ativo - Domado",
+    sire: "Calmo (HC-019)",
+    dam: "Tranquila (HC-026)",
+    birthDate: new Date(2020, 11, 12),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: new Date(2023, 9, 10),
+      applied: true
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-108",
+    name: "Aurora",
+    age: 3,
+    breed: "Árabe",
+    color: "Alazão",
+    gender: "Fêmea",
+    status: "Em treinamento - Potro",
+    sire: "Amanhecer (HC-037)",
+    dam: "Madrugada (HC-041)",
+    birthDate: new Date(2022, 9, 5),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: null,
+      applied: false
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-109",
+    name: "Relâmpago",
+    age: 7,
+    breed: "Quarto de Milha",
+    color: "Castanho",
+    gender: "Macho",
+    status: "Ativo - Domado",
+    sire: "Corisco (HC-012)",
+    dam: "Faísca (HC-015)",
+    birthDate: new Date(2018, 6, 23),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: new Date(2023, 2, 1),
+      applied: true
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-110",
+    name: "Fantasia",
+    age: 4,
+    breed: "Mangalarga",
+    color: "Tordilho",
+    gender: "Fêmea",
+    status: "Em treinamento - Em doma",
+    sire: "Sonho (HC-031)",
+    dam: "Ilusão (HC-035)",
+    birthDate: new Date(2021, 3, 15),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: new Date(2023, 4, 20),
+      applied: true
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-111",
+    name: "Encanto",
+    age: 6,
+    breed: "Crioulo",
+    color: "Preto",
+    gender: "Macho",
+    status: "Ativo - Domado",
+    sire: "Feitiço (HC-024)",
+    dam: "Magia (HC-029)",
+    birthDate: new Date(2019, 8, 30),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: new Date(2023, 7, 15),
+      applied: true
+    })),
+    customVaccinations: [],
+  },
+  {
+    id: "HC-112",
+    name: "Ventania",
+    age: 3,
+    breed: "Árabe",
+    color: "Baio",
+    gender: "Fêmea",
+    status: "Em treinamento - Potro",
+    sire: "Furacão (HC-045)",
+    dam: "Brisa (HC-039)",
+    birthDate: new Date(2022, 5, 8),
+    sireImage: "",
+    damImage: "",
+    vaccinations: standardVaccinations.map(name => ({
+      name,
+      date: null,
+      applied: false
+    })),
+    customVaccinations: [],
+  },
 ];
 
 export function useHorses() {
@@ -92,6 +273,10 @@ export function useHorses() {
   const [selectedHorse, setSelectedHorse] = useState<typeof initialHorses[0] | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isAddHorseDialogOpen, setIsAddHorseDialogOpen] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   const handleOpenHorseDetails = (horse: typeof initialHorses[0]) => {
     setSelectedHorse(horse);
@@ -111,6 +296,11 @@ export function useHorses() {
     setSelectedHorse(updatedHorse);
   };
 
+  // Pagination calculation
+  const totalPages = Math.ceil(horses.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
   return {
     horses,
     searchTerm,
@@ -124,6 +314,13 @@ export function useHorses() {
     handleOpenHorseDetails,
     handleAddHorse,
     handleUpdateHorse,
-    standardVaccinations
+    standardVaccinations,
+    // Pagination properties and methods
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    totalPages,
+    indexOfFirstItem,
+    indexOfLastItem
   };
 }

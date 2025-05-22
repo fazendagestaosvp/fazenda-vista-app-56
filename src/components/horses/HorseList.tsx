@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { HorseStatusBadge } from "./HorseStatusBadge";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis
+} from "@/components/ui/pagination";
 
 interface HorseListProps {
   horses: any[];
@@ -12,6 +21,13 @@ interface HorseListProps {
   setSearchTerm: (value: string) => void;
   onOpenAddDialog: () => void;
   onOpenHorseDetails: (horse: any) => void;
+  // Pagination props
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  totalPages: number;
+  itemsPerPage: number;
+  indexOfFirstItem: number;
+  indexOfLastItem: number;
 }
 
 export function HorseList({
@@ -19,7 +35,13 @@ export function HorseList({
   searchTerm,
   setSearchTerm,
   onOpenAddDialog,
-  onOpenHorseDetails
+  onOpenHorseDetails,
+  currentPage,
+  setCurrentPage,
+  totalPages,
+  itemsPerPage,
+  indexOfFirstItem,
+  indexOfLastItem
 }: HorseListProps) {
   // Filter horses based on search term
   const filteredHorses = horses.filter(
@@ -28,6 +50,46 @@ export function HorseList({
       horse.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       horse.breed.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Get current horses for the page
+  const currentHorses = filteredHorses.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if there are less than maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      if (currentPage > 3) {
+        pages.push("ellipsis-start");
+      }
+      
+      // Show pages around current page
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      if (currentPage < totalPages - 2) {
+        pages.push("ellipsis-end");
+      }
+      
+      // Always show last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
 
   return (
     <Card>
@@ -70,7 +132,7 @@ export function HorseList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredHorses.map((horse) => (
+            {currentHorses.map((horse) => (
               <TableRow key={horse.id}>
                 <TableCell className="font-medium">{horse.id}</TableCell>
                 <TableCell>{horse.name}</TableCell>
@@ -92,6 +154,68 @@ export function HorseList({
             ))}
           </TableBody>
         </Table>
+
+        {/* Show pagination if there's more than one page */}
+        {totalPages > 0 && (
+          <div className="mt-4">
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(currentPage - 1);
+                      }} 
+                    />
+                  </PaginationItem>
+                )}
+                
+                {getPageNumbers().map((page, index) => {
+                  if (page === "ellipsis-start" || page === "ellipsis-end") {
+                    return (
+                      <PaginationItem key={`ellipsis-${index}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  
+                  return (
+                    <PaginationItem key={index}>
+                      <PaginationLink 
+                        href="#"
+                        isActive={page === currentPage}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(page as number);
+                        }}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                {currentPage < totalPages && (
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(currentPage + 1);
+                      }} 
+                    />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+        
+        <div className="text-sm text-gray-500 mt-2 text-center">
+          Mostrando {Math.min(filteredHorses.length, indexOfFirstItem + 1)}-{Math.min(indexOfLastItem, filteredHorses.length)} de {filteredHorses.length} cavalos
+        </div>
       </CardContent>
     </Card>
   );

@@ -19,7 +19,14 @@ const GestaoCavalos = () => {
     handleOpenHorseDetails,
     handleAddHorse,
     handleUpdateHorse,
-    standardVaccinations
+    standardVaccinations,
+    // Pagination props
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    totalPages,
+    indexOfFirstItem,
+    indexOfLastItem
   } = useHorses();
 
   return (
@@ -37,6 +44,12 @@ const GestaoCavalos = () => {
         setSearchTerm={setSearchTerm}
         onOpenAddDialog={() => setIsAddHorseDialogOpen(true)}
         onOpenHorseDetails={handleOpenHorseDetails}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        indexOfFirstItem={indexOfFirstItem}
+        indexOfLastItem={indexOfLastItem}
       />
 
       <HorseDetailsDialog
