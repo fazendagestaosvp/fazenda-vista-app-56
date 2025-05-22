@@ -2,7 +2,7 @@
 import React from "react";
 import { HorseList } from "@/components/horses/HorseList";
 import { HorseMetrics } from "@/components/horses/HorseMetrics";
-import { HorseDetailsDialog } from "@/components/horses/HorseDetailsDialog";
+import { HorseDetailsDialog } from "@/components/horses/details/HorseDetailsDialog";
 import { AddHorseDialog } from "@/components/horses/AddHorseDialog";
 import { useHorses } from "@/hooks/useHorses";
 
