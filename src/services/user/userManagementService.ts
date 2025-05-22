@@ -86,25 +86,16 @@ export const updateUser = async ({
         throw new Error(deleteError.message);
       }
 
-      // Map roles to what Supabase expects in the database
-      // This is crucial for type compatibility with Supabase's expected types
-      let dbRoleValue: "admin" | "editor" | "viewer";
+      // Create a properly typed object for the insert
+      const roleData: { user_id: string; role: string } = {
+        user_id: userId,
+        role: dbRole
+      };
       
-      if (dbRole === "admin") {
-        dbRoleValue = "admin";
-      } else if (dbRole === "user") {
-        dbRoleValue = "editor"; // 'user' in our logic maps to 'editor' in Supabase
-      } else {
-        dbRoleValue = "viewer";
-      }
-      
-      // Insert with the correctly typed role value
+      // Insert the role record
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert({ 
-          user_id: userId, 
-          role: dbRoleValue
-        });
+        .insert(roleData);
 
       if (insertError) {
         console.error("Error inserting role:", insertError);
