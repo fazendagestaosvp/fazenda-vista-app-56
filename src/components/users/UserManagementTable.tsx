@@ -10,13 +10,14 @@ import UserEditDialog from "./UserEditDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UiRole } from "@/types/user.types";
 
 // Define the User interface locally to match what's returned from fetchUsers
 interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: UiRole;
   created_at: string;
 }
 
