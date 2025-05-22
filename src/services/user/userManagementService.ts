@@ -86,16 +86,27 @@ export const updateUser = async ({
         throw new Error(deleteError.message);
       }
 
-      // Create a properly typed object for the insert
-      const roleData: { user_id: string; role: string } = {
-        user_id: userId,
-        role: dbRole
-      };
+      // Use type assertion to match the expected enum type
+      // We need to cast to the specific literal type expected by the Supabase client
+      type SupabaseRoleType = "admin" | "editor" | "viewer";
+      let supabaseRole: SupabaseRoleType;
       
-      // Insert the role record
+      // Map DbRole to the expected Supabase role format
+      if (dbRole === "admin") {
+        supabaseRole = "admin";
+      } else if (dbRole === "user") {
+        supabaseRole = "editor";
+      } else {
+        supabaseRole = "viewer";
+      }
+      
+      // Insert with the properly typed role
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert(roleData);
+        .insert({ 
+          user_id: userId, 
+          role: supabaseRole 
+        });
 
       if (insertError) {
         console.error("Error inserting role:", insertError);
