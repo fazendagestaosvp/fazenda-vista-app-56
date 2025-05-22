@@ -3,7 +3,7 @@ import React from "react";
 import { HorseList } from "@/components/horses/HorseList";
 import { HorseMetrics } from "@/components/horses/HorseMetrics";
 import { HorseDetailsDialog } from "@/components/horses/details/HorseDetailsDialog";
-import { AddHorseDialog } from "@/components/horses/AddHorseDialog";
+import { AddHorseDialog } from "@/components/horses/add/AddHorseDialog";
 import { useHorses } from "@/hooks/useHorses";
 
 const GestaoCavalos = () => {
