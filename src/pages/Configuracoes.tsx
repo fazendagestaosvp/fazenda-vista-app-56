@@ -8,20 +8,16 @@ import {
 } from "@/components/configuracoes";
 
 const Configuracoes = () => {
-  const { userRole, isAdmin, loading } = useAuth();
+  const { userRole, isAdmin, loading, user } = useAuth();
 
   console.log("=== DEBUG CONFIGURAÇÕES ===");
   console.log("UserRole em Configuracoes:", userRole);
   console.log("Loading:", loading);
   console.log("isAdmin function result:", isAdmin());
-  console.log("Type of userRole:", typeof userRole);
+  console.log("User email:", user?.email);
   console.log("===========================");
   
-  // Verificação usando o tipo UiRole correto
   const isAdminUser = userRole === "admin";
-  
-  console.log("isAdminUser (direct comparison):", isAdminUser);
-  console.log("isAdmin() function:", isAdmin());
 
   if (loading) {
     return (
@@ -32,7 +28,7 @@ const Configuracoes = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Configurações</h2>
         <p className="text-muted-foreground">
@@ -42,11 +38,18 @@ const Configuracoes = () => {
 
       <ConfiguracoesDebugInfo />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Grid de configurações principais */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <BasicSettingsGrid />
-        <UserControlPanel isAdminUser={isAdminUser} />
-        {isAdminUser && <AdminAdvancedSection />}
+        
+        {/* Card de Controle de Usuários para Admin */}
+        {isAdminUser && (
+          <UserControlPanel isAdminUser={isAdminUser} />
+        )}
       </div>
+
+      {/* Seção de Controle de Usuários expandida para Admin */}
+      {isAdminUser && <AdminAdvancedSection />}
     </div>
   );
 };

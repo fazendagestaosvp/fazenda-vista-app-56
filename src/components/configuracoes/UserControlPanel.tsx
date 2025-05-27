@@ -1,8 +1,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Eye, Users, UserCog, User, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Users } from "lucide-react";
 
 interface UserControlPanelProps {
   isAdminUser: boolean;
@@ -11,74 +11,28 @@ interface UserControlPanelProps {
 export default function UserControlPanel({ isAdminUser }: UserControlPanelProps) {
   const navigate = useNavigate();
 
+  if (!isAdminUser) return null;
+
   return (
-    <Card className="border-farm/20 bg-gradient-to-br from-farm/5 to-farm/10">
-      <CardHeader>
-        <CardTitle className="flex items-center text-farm">
-          <Settings className="mr-2 h-5 w-5" />
-          Controle de Usuários
-          {!isAdminUser && <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">(Debug: Não Admin)</span>}
-        </CardTitle>
-        <CardDescription>
+    <Card>
+      <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
+            <Users className="h-4 w-4 text-white" />
+          </div>
+          <CardTitle className="text-base">Controle de Usuários</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <CardDescription className="mb-4">
           Gerencie usuários, níveis de acesso e permissões do sistema.
         </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 gap-2">
-          <Button 
-            className="w-full bg-farm hover:bg-farm-dark flex items-center justify-center gap-2"
-            onClick={() => navigate("/admin/role-management")}
-            disabled={!isAdminUser}
-          >
-            <UserCog className="h-4 w-4" />
-            Gerenciar Usuários
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="w-full border-farm text-farm hover:bg-farm hover:text-white flex items-center justify-center gap-2"
-            onClick={() => navigate("/admin/users")}
-            disabled={!isAdminUser}
-          >
-            <Users className="h-4 w-4" />
-            Adicionar/Editar Usuários
-          </Button>
-
-          <div className="grid grid-cols-3 gap-1 mt-3">
-            <Button 
-              size="sm"
-              variant="outline"
-              className="text-xs px-2 py-1 border-red-200 text-red-700 hover:bg-red-50"
-              onClick={() => navigate("/admin/promote")}
-              disabled={!isAdminUser}
-            >
-              <Shield className="h-3 w-3 mr-1" />
-              Admin
-            </Button>
-            
-            <Button 
-              size="sm"
-              variant="outline"
-              className="text-xs px-2 py-1 border-green-200 text-green-700 hover:bg-green-50"
-              onClick={() => navigate("/admin/promote-editor")}
-              disabled={!isAdminUser}
-            >
-              <User className="h-3 w-3 mr-1" />
-              Editor
-            </Button>
-            
-            <Button 
-              size="sm"
-              variant="outline"
-              className="text-xs px-2 py-1 border-blue-200 text-blue-700 hover:bg-blue-50"
-              onClick={() => navigate("/admin/promote-viewer")}
-              disabled={!isAdminUser}
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              Viewer
-            </Button>
-          </div>
-        </div>
+        <Button 
+          className="w-full bg-orange-500 hover:bg-orange-600"
+          onClick={() => navigate("/user-management")}
+        >
+          Gerenciar Usuários
+        </Button>
       </CardContent>
     </Card>
   );
