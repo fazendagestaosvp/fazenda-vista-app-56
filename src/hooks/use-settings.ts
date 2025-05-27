@@ -46,7 +46,7 @@ export const useSettings = () => {
       }
 
       if (data?.settings) {
-        setSettings(data.settings);
+        setSettings(data.settings as NotificationSettings);
       }
     } catch (error) {
       console.error("Error loading settings:", error);
