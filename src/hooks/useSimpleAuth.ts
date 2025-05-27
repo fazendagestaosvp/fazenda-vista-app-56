@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { UiRole } from "@/types/user.types";
 
+// Tipo para roles que podem vir do banco de dados
+type DbRoleValue = "admin" | "editor" | "viewer" | "user";
+
 export const useSimpleAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -90,7 +93,7 @@ export const useSimpleAuth = () => {
       }
 
       if (data) {
-        const dbRole = data.role;
+        const dbRole = data.role as DbRoleValue;
         console.log("6. Role no DB (raw):", dbRole);
         console.log("7. Tipo da role:", typeof dbRole);
         
