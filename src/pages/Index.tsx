@@ -1,17 +1,11 @@
 
-import { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthContext";
+import { Navigate } from "react-router-dom";
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/login");
-    }
-  }, [user, loading, navigate]);
+  console.log("Index page - user:", user, "loading:", loading);
 
   if (loading) {
     return (
@@ -21,7 +15,13 @@ const Index = () => {
     );
   }
 
-  return <Navigate to="/dashboard" replace />;
+  if (user) {
+    console.log("User authenticated, redirecting to dashboard");
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  console.log("User not authenticated, redirecting to login");
+  return <Navigate to="/login" replace />;
 };
 
 export default Index;
