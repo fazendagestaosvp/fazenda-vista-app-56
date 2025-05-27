@@ -84,6 +84,80 @@ export type Database = {
         }
         Relationships: []
       }
+      contas: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome_conta: string
+          proprietario_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome_conta: string
+          proprietario_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome_conta?: string
+          proprietario_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_proprietario_id_fkey"
+            columns: ["proprietario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dados_dashboard: {
+        Row: {
+          conta_id: string
+          created_at: string | null
+          criado_por: string
+          dados: Json | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          conta_id: string
+          created_at?: string | null
+          criado_por: string
+          dados?: Json | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          conta_id?: string
+          created_at?: string | null
+          criado_por?: string
+          dados?: Json | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dados_dashboard_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dados_dashboard_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_folders: {
         Row: {
           created_at: string
@@ -192,18 +266,21 @@ export type Database = {
           created_at: string
           id: string
           role: Database["public"]["Enums"]["user_role"]
+          role_type: Database["public"]["Enums"]["user_role_type"] | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          role_type?: Database["public"]["Enums"]["user_role_type"] | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          role_type?: Database["public"]["Enums"]["user_role_type"] | null
           user_id?: string
         }
         Relationships: []
@@ -232,6 +309,42 @@ export type Database = {
         }
         Relationships: []
       }
+      visualizadores_permitidos: {
+        Row: {
+          conta_id: string
+          created_at: string | null
+          id: number
+          visualizador_id: string
+        }
+        Insert: {
+          conta_id: string
+          created_at?: string | null
+          id?: number
+          visualizador_id: string
+        }
+        Update: {
+          conta_id?: string
+          created_at?: string | null
+          id?: number
+          visualizador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visualizadores_permitidos_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visualizadores_permitidos_visualizador_id_fkey"
+            columns: ["visualizador_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -243,6 +356,10 @@ export type Database = {
           id: string
           email: string
         }[]
+      }
+      get_user_role: {
+        Args: { user_id?: string }
+        Returns: string
       }
       has_role: {
         Args: {
@@ -266,6 +383,7 @@ export type Database = {
     }
     Enums: {
       user_role: "admin" | "editor" | "viewer"
+      user_role_type: "ADM" | "EDITOR" | "VISUALIZADOR"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -382,6 +500,7 @@ export const Constants = {
   public: {
     Enums: {
       user_role: ["admin", "editor", "viewer"],
+      user_role_type: ["ADM", "EDITOR", "VISUALIZADOR"],
     },
   },
 } as const

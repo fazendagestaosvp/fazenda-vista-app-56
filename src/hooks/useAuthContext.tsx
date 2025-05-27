@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useAuthProvider } from "./auth/useAuthProvider";
 import { useAuthMethods } from "./auth/useAuthMethods";
 import { useRoleChecks } from "./auth/useRoleChecks";
+import { useUserRole } from "./useUserRole";
 import { AuthContextType, AuthResult } from "./auth/types";
 import { Session } from "@supabase/supabase-js";
 import { UiRole } from "@/types/user.types";
@@ -11,15 +12,23 @@ import { useNavigate } from "react-router-dom";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const navigate = useNavigate(); // Now this is used within the Router context
+  const navigate = useNavigate();
   
   const { 
     session, 
     user, 
     userRole, 
-    loading, 
+    loading: authLoading, 
     setLoading 
   } = useAuthProvider();
+  
+  const { 
+    currentUserRole,
+    loading: roleLoading,
+    isAdmin: isAdminRole,
+    isEditor: isEditorRole,
+    isViewer: isViewerRole
+  } = useUserRole();
   
   const { 
     signIn, 
@@ -28,15 +37,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     resetPassword 
   } = useAuthMethods();
   
-  const { 
-    isAdmin, 
-    isViewer,
-    isEditor,
-    canEdit,
-    hasAccessLevel 
-  } = useRoleChecks(userRole);
+  // Use os novos role checks baseados no sistema atualizado
+  const isAdmin = () => currentUserRole === "ADM";
+  const isViewer = () => currentUserRole === "VISUALIZADOR";
+  const isEditor = () => currentUserRole === "EDITOR";
+  const canEdit = () => currentUserRole === "ADM" || currentUserRole === "EDITOR";
   
-  console.log("AuthProvider - userRole:", userRole);
+  const hasAccessLevel = (minimumLevel: UiRole) => {
+    if (!currentUserRole) return false;
+    
+    if (minimumLevel === "admin") {
+      return isAdmin();
+    } else if (minimumLevel === "editor") {
+      return isAdmin() || isEditor();
+    } else {
+      return true; // todos os usuários logados podem acessar páginas de nível "viewer"
+    }
+  };
+  
+  const loading = authLoading || roleLoading;
+  
+  console.log("AuthProvider - currentUserRole:", currentUserRole);
   console.log("AuthProvider - isAdmin:", isAdmin());
 
   // Wrap the signIn function to set loading and handle navigation
@@ -49,7 +70,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       await signIn(email, password, 
-        // Custom success handler that includes navigation
         () => {
           if (onSuccess) {
             onSuccess();
@@ -92,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         session: session as Session,
         user,
-        userRole,
+        userRole: currentUserRole as UiRole, // Mapeando para compatibilidade
         loading,
         signIn: wrappedSignIn,
         signUp: wrappedSignUp,
