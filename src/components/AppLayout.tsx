@@ -1,13 +1,18 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Menu, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
-export const AppLayout = () => {
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export const AppLayout = ({ children }: AppLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     // Verificar se há preferência salva no localStorage
     const savedState = localStorage.getItem('sidebarState');
@@ -76,13 +81,10 @@ export const AppLayout = () => {
         
         <main className="p-6">
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-sm">
-            <Outlet />
+            {children}
           </div>
         </main>
       </div>
     </div>
   );
 };
-
-// Importar cn para poder usar a função
-import { cn } from "@/lib/utils";
