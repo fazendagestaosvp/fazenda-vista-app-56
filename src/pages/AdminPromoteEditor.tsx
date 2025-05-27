@@ -1,103 +1,102 @@
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, User, Shield, Eye } from "lucide-react";
+import UserRoleManagement from "@/components/admin/UserRoleManagement";
 
 const AdminPromoteEditor = () => {
-  const [email, setEmail] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { userRole, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
-  // Redirect if not admin
-  if (!isAdmin()) {
-    navigate("/dashboard");
-    return null;
-  }
+  useEffect(() => {
+    if (!isAdmin()) {
+      navigate("/dashboard");
+      toast({
+        title: "Acesso restrito",
+        description: "Apenas administradores podem acessar esta página",
+        variant: "destructive",
+      });
+    }
+  }, [userRole, navigate, toast, isAdmin]);
 
-  const handlePromote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email.trim()) {
-      toast({
-        title: "Erro",
-        description: "Por favor, forneça um email válido",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.rpc('promote_to_editor', { 
-        email: email.trim() 
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Sucesso!",
-        description: `O usuário ${email} foi promovido a editor com sucesso!`,
-      });
-      
-      setEmail("");
-    } catch (error: any) {
-      toast({
-        title: "Erro ao promover usuário",
-        description: error.message || "Ocorreu um erro ao promover o usuário",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   return (
-    <div className="max-w-md mx-auto">
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/configuracoes")}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Promover Editores</h2>
+          <p className="text-muted-foreground">
+            Altere o nível de acesso dos usuários editores.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3 mb-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-red-700 text-sm">
+              <Shield className="mr-2 h-4 w-4" />
+              Administrador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-xs">
+              Acesso completo ao sistema, pode gerenciar todos os usuários e configurações.
+            </CardDescription>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-green-700 text-sm">
+              <User className="mr-2 h-4 w-4" />
+              Editor
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-xs">
+              Pode criar e editar conteúdo, gerenciar suas próprias informações.
+            </CardDescription>
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-blue-700 text-sm">
+              <Eye className="mr-2 h-4 w-4" />
+              Visualizador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-xs">
+              Acesso somente leitura, pode visualizar conteúdo permitido.
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Promoção de Editor</CardTitle>
+          <CardTitle>Gerenciamento de Usuários</CardTitle>
           <CardDescription>
-            Promova um usuário existente para o papel de editor.
+            Selecione o novo nível de acesso para cada usuário usando os controles abaixo.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handlePromote}>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email do Usuário</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="usuario@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </form>
+          <UserRoleManagement />
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => navigate(-1)}>Cancelar</Button>
-          <Button 
-            onClick={handlePromote} 
-            disabled={isLoading}
-            className="bg-farm hover:bg-farm-dark"
-          >
-            {isLoading ? "Processando..." : "Promover a Editor"}
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,6 +24,7 @@ import UserManagement from "@/pages/UserManagement";
 import UserAccessControl from "@/pages/UserAccessControl";
 import AdminPromote from "@/pages/AdminPromote";
 import AdminPromoteViewer from "@/pages/AdminPromoteViewer";
+import AdminPromoteEditor from "@/pages/AdminPromoteEditor";
 import AdminRoleManagement from "@/pages/AdminRoleManagement";
 
 // Criando um cliente do React Query para gerenciamento de estado e requisições
@@ -68,6 +70,7 @@ function App() {
             <Route path="admin/role-management" element={<AdminRoleManagement />} />
             <Route path="admin/promote" element={<AdminPromote />} />
             <Route path="admin/promote-viewer" element={<AdminPromoteViewer />} />
+            <Route path="admin/promote-editor" element={<AdminPromoteEditor />} />
           </Route>
           
           {/* Rota para página não encontrada */}
