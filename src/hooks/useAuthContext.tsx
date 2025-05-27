@@ -2,12 +2,12 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useAuthProvider } from "./auth/useAuthProvider";
 import { useAuthMethods } from "./auth/useAuthMethods";
-import { useRoleChecks } from "./auth/useRoleChecks";
-import { useUserRole } from "./useUserRole";
 import { AuthContextType, AuthResult } from "./auth/types";
 import { Session } from "@supabase/supabase-js";
 import { UiRole } from "@/types/user.types";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -22,13 +22,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading 
   } = useAuthProvider();
   
-  const { 
-    currentUserRole,
-    loading: roleLoading,
-    isAdmin: isAdminRole,
-    isEditor: isEditorRole,
-    isViewer: isViewerRole
-  } = useUserRole();
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [roleLoading, setRoleLoading] = useState(true);
   
   const { 
     signIn, 
@@ -37,7 +32,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     resetPassword 
   } = useAuthMethods();
   
-  // Use os novos role checks baseados no sistema atualizado
+  // Buscar role do usuário diretamente aqui, sem usar useUserRole
+  useEffect(() => {
+    if (user) {
+      fetchCurrentUserRole();
+    } else {
+      setCurrentUserRole(null);
+      setRoleLoading(false);
+    }
+  }, [user]);
+
+  const fetchCurrentUserRole = async () => {
+    if (!user) return;
+
+    try {
+      setRoleLoading(true);
+      
+      // Usar a função do banco para obter o role
+      const { data, error } = await supabase.rpc('get_user_role', {
+        user_id: user.id
+      });
+
+      if (error) {
+        console.error('Erro ao buscar role do usuário:', error);
+        setCurrentUserRole('EDITOR'); // Default
+        return;
+      }
+
+      setCurrentUserRole(data || 'EDITOR');
+    } catch (error) {
+      console.error('Erro ao buscar role:', error);
+      setCurrentUserRole('EDITOR');
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+  
+  // Use os role checks baseados no sistema atualizado
   const isAdmin = () => currentUserRole === "ADM";
   const isViewer = () => currentUserRole === "VISUALIZADOR";
   const isEditor = () => currentUserRole === "EDITOR";
