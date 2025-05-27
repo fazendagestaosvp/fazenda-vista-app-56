@@ -11,19 +11,19 @@ export const useSimpleAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("useSimpleAuth: Setting up auth state listener");
+    console.log("useSimpleAuth: Inicializando setup de autenticação");
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
+      console.log("Auth state changed:", event, "user:", session?.user?.email || "No user");
       setSession(session);
       setUser(session?.user || null);
       
       if (session?.user) {
-        console.log("User found, fetching role for:", session.user.id);
+        console.log("Usuário encontrado, buscando role para:", session.user.id);
         await fetchUserRole(session.user.id);
       } else {
-        console.log("No user, clearing role");
+        console.log("Nenhum usuário, limpando role");
         setUserRole(null);
       }
       
@@ -32,37 +32,42 @@ export const useSimpleAuth = () => {
 
     // THEN check for existing session
     const getInitialSession = async () => {
-      console.log("Checking for existing session");
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Error getting session:", error);
+      console.log("Verificando sessão existente");
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Erro ao obter sessão:", error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Sessão inicial:", session?.user?.email || "Nenhuma sessão");
+        setSession(session);
+        setUser(session?.user || null);
+        
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        }
+        
         setLoading(false);
-        return;
+      } catch (error) {
+        console.error("Erro no getInitialSession:", error);
+        setLoading(false);
       }
-      
-      console.log("Initial session:", session?.user?.email || "No session");
-      setSession(session);
-      setUser(session?.user || null);
-      
-      if (session?.user) {
-        await fetchUserRole(session.user.id);
-      }
-      
-      setLoading(false);
     };
 
     getInitialSession();
 
     return () => {
-      console.log("Cleaning up auth subscription");
+      console.log("Limpando subscription de autenticação");
       subscription.unsubscribe();
     };
   }, []);
 
   const fetchUserRole = async (userId: string) => {
     try {
-      console.log("Fetching role for user:", userId);
+      console.log("Buscando role para usuário:", userId);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -70,14 +75,14 @@ export const useSimpleAuth = () => {
         .single();
 
       if (error) {
-        console.error('Error fetching user role:', error);
+        console.error('Erro ao buscar role do usuário:', error);
         setUserRole('editor');
         return;
       }
 
       if (data) {
         const dbRole = data.role;
-        console.log("User role from DB:", dbRole);
+        console.log("Role do usuário no DB:", dbRole);
         switch (dbRole) {
           case 'admin':
             setUserRole('admin');
@@ -90,31 +95,31 @@ export const useSimpleAuth = () => {
             break;
         }
       } else {
-        console.log("No role found, defaulting to editor");
+        console.log("Nenhuma role encontrada, definindo como editor");
         setUserRole('editor');
       }
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('Erro ao buscar role do usuário:', error);
       setUserRole('editor');
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    console.log("Attempting sign in for:", email);
+    console.log("Tentando fazer login para:", email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
     if (error) {
-      console.error("Sign in error:", error);
+      console.error("Erro no login:", error);
       throw error;
     }
-    console.log("Sign in successful");
+    console.log("Login realizado com sucesso");
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    console.log("Attempting sign up for:", email);
+    console.log("Tentando registrar usuário:", email);
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -126,30 +131,30 @@ export const useSimpleAuth = () => {
     });
     
     if (error) {
-      console.error("Sign up error:", error);
+      console.error("Erro no registro:", error);
       throw error;
     }
-    console.log("Sign up successful");
+    console.log("Registro realizado com sucesso");
   };
 
   const signOut = async () => {
-    console.log("Attempting sign out");
+    console.log("Tentando fazer logout");
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error("Sign out error:", error);
+      console.error("Erro no logout:", error);
       throw error;
     }
-    console.log("Sign out successful");
+    console.log("Logout realizado com sucesso");
   };
 
   const resetPassword = async (email: string) => {
-    console.log("Attempting password reset for:", email);
+    console.log("Tentando reset de senha para:", email);
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) {
-      console.error("Password reset error:", error);
+      console.error("Erro no reset de senha:", error);
       throw error;
     }
-    console.log("Password reset email sent");
+    console.log("Email de reset de senha enviado");
   };
 
   // Role check functions
