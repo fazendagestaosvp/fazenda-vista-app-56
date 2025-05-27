@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import { Shield, User, Eye, RefreshCw } from "lucide-react";
-import { useRoleManagement, UserWithRole, UserRoleType } from "@/hooks/useRoleManagement";
+import { useRoleManagement, UserWithRole, UserRoleType } from "@/hooks/role-management";
 import { VisualizadorPermissionsDialog } from "./VisualizadorPermissionsDialog";
 
 const UserRoleManagement = () => {
