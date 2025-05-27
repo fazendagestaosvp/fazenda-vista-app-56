@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { toast } from "@/hooks/use-toast";
 
-// Tipos para o histórico de saúde
-export interface HealthRecord {
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useSimpleAuth } from "@/hooks/useSimpleAuth";
+
+interface HealthRecord {
   id: string;
   animalId: string;
   animalName: string;
@@ -11,158 +12,103 @@ export interface HealthRecord {
   procedure: string;
   date: Date;
   veterinarian: string;
-  notes: string;
   status: string;
 }
 
-// Dados iniciais de exemplo (os mesmos da página HistoricoSaude.tsx)
-const initialHealthRecords = [
-  {
-    id: "HR-101",
-    animalId: "BG-101",
-    animalName: "Estrela",
-    animalType: "Gado",
-    type: "Vacinação",
-    procedure: "Febre Aftosa",
-    date: new Date(2025, 4, 1),
-    veterinarian: "Dr. Carlos Silva",
-    notes: "Aplicação de rotina, sem complicações.",
-    status: "Concluído"
-  },
-  {
-    id: "HR-102",
-    animalId: "HC-101",
-    animalName: "Ventania",
-    animalType: "Cavalo",
-    type: "Exame",
-    procedure: "Exame de Sangue",
-    date: new Date(2025, 3, 25),
-    veterinarian: "Dra. Ana Oliveira",
-    notes: "Resultados normais.",
-    status: "Concluído"
-  },
-  {
-    id: "HR-103",
-    animalId: "BG-103",
-    animalName: "Luna",
-    animalType: "Gado",
-    type: "Tratamento",
-    procedure: "Antibióticos",
-    date: new Date(2025, 3, 28),
-    veterinarian: "Dr. Carlos Silva",
-    notes: "Infecção leve. Tratar por 7 dias.",
-    status: "Em andamento"
-  },
-  {
-    id: "HR-104",
-    animalId: "HC-103",
-    animalName: "Lua Cheia",
-    animalType: "Cavalo",
-    type: "Vacinação",
-    procedure: "Tétano",
-    date: new Date(2025, 4, 5),
-    veterinarian: "Dra. Ana Oliveira",
-    notes: "Vacinação anual.",
-    status: "Agendado"
-  },
-  {
-    id: "HR-105",
-    animalId: "BG-102",
-    animalName: "Trovão",
-    animalType: "Gado",
-    type: "Consulta",
-    procedure: "Avaliação Geral",
-    date: new Date(2025, 4, 2),
-    veterinarian: "Dr. Carlos Silva",
-    notes: "Animal em boas condições.",
-    status: "Concluído"
-  },
-];
-
 export const useHealthHistory = () => {
-  const [healthRecords, setHealthRecords] = useState<HealthRecord[]>(initialHealthRecords);
+  const { user } = useSimpleAuth();
+  const [records, setRecords] = useState<HealthRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [animalTypeFilter, setAnimalTypeFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  
+  const [animalTypeFilter, setAnimalTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [currentRecord, setCurrentRecord] = useState<HealthRecord | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Filtragem por termo de busca, tipo de animal e status
-  const filteredRecords = healthRecords.filter((record) => {
-    const matchesSearch =
-      record.animalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.animalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.procedure.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesAnimalType = animalTypeFilter === "all" || record.animalType === animalTypeFilter;
-    const matchesStatus = statusFilter === "all" || record.status === statusFilter;
-    
-    return matchesSearch && matchesAnimalType && matchesStatus;
-  });
+  useEffect(() => {
+    if (user) {
+      fetchHealthHistory();
+    }
+  }, [user]);
 
-  // Manipuladores de eventos
-  const handleViewRecord = (record: HealthRecord) => {
-    setCurrentRecord(record);
-    setIsViewDialogOpen(true);
-  };
+  const fetchHealthHistory = async () => {
+    if (!user) return;
 
-  const handleEditRecord = (record: HealthRecord) => {
-    setCurrentRecord(record);
-    setIsEditDialogOpen(true);
-  };
+    try {
+      setLoading(true);
+      
+      const { data: healthData, error } = await supabase
+        .from('health_history')
+        .select(`
+          *,
+          animals:animal_id (
+            name,
+            species,
+            identification
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
 
-  const handleDeleteRecord = (recordId: string) => {
-    if (confirm("Tem certeza que deseja excluir este registro de saúde?")) {
-      setHealthRecords(healthRecords.filter(record => record.id !== recordId));
-      toast({
-        title: "Registro excluído",
-        description: `O registro de saúde foi excluído com sucesso.`
-      });
+      if (error) {
+        console.error('Error fetching health history:', error);
+        return;
+      }
+
+      const formattedRecords: HealthRecord[] = (healthData || []).map((record: any) => ({
+        id: record.id,
+        animalId: record.animals?.identification || record.animal_id,
+        animalName: record.animals?.name || 'Animal não encontrado',
+        animalType: record.animals?.species || 'Desconhecido',
+        type: record.type,
+        procedure: record.description || record.type,
+        date: new Date(record.date),
+        veterinarian: record.veterinarian || 'Não informado',
+        status: record.notes?.includes('concluído') ? 'Concluído' : 
+                record.notes?.includes('agendado') ? 'Agendado' : 'Em andamento',
+      }));
+
+      setRecords(formattedRecords);
+    } catch (error) {
+      console.error('Error fetching health history:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddSuccess = (newRecord: HealthRecord) => {
-    setHealthRecords([...healthRecords, newRecord]);
+  const filteredRecords = records.filter((record) => {
+    const matchesSearch = 
+      record.animalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.procedure.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.veterinarian.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesAnimalType = animalTypeFilter === "all" || record.animalType === animalTypeFilter;
+    const matchesStatus = statusFilter === "all" || record.status === statusFilter;
+
+    return matchesSearch && matchesAnimalType && matchesStatus;
+  });
+
+  const handleAddSuccess = () => {
     setIsAddDialogOpen(false);
-    toast({
-      title: "Registro adicionado",
-      description: `Novo registro de saúde adicionado com sucesso.`
-    });
+    fetchHealthHistory();
   };
 
-  const handleEditSuccess = (updatedRecord: HealthRecord) => {
-    setHealthRecords(healthRecords.map(record => 
-      record.id === updatedRecord.id ? updatedRecord : record
-    ));
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Registro atualizado",
-      description: `As informações do registro foram atualizadas com sucesso.`
-    });
-  };
+  // Estatísticas
+  const vaccineCount = records.filter(r => r.type.toLowerCase().includes('vacina')).length;
+  const examCount = records.filter(r => r.type.toLowerCase().includes('exame')).length;
+  const treatmentCount = records.filter(r => r.type.toLowerCase().includes('tratamento')).length;
+  const consultationCount = records.filter(r => r.type.toLowerCase().includes('consulta')).length;
 
-  // Contadores para estatísticas
-  const vaccineCount = healthRecords.filter(record => record.type === "Vacinação").length;
-  const examCount = healthRecords.filter(record => record.type === "Exame").length;
-  const treatmentCount = healthRecords.filter(record => record.type === "Tratamento").length;
-  const consultationCount = healthRecords.filter(record => record.type === "Consulta").length;
+  const completedCount = records.filter(r => r.status === 'Concluído').length;
+  const inProgressCount = records.filter(r => r.status === 'Em andamento').length;
+  const scheduledCount = records.filter(r => r.status === 'Agendado').length;
 
-  const completedCount = healthRecords.filter(record => record.status === "Concluído").length;
-  const inProgressCount = healthRecords.filter(record => record.status === "Em andamento").length;
-  const scheduledCount = healthRecords.filter(record => record.status === "Agendado").length;
-
-  // Eventos futuros
-  const today = new Date();
-  const upcomingEvents = healthRecords
-    .filter(record => record.date > today)
+  const upcomingEvents = records
+    .filter(r => r.status === 'Agendado' && r.date >= new Date())
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 5);
 
   return {
-    healthRecords,
+    records,
     filteredRecords,
     searchTerm,
     setSearchTerm,
@@ -172,16 +118,8 @@ export const useHealthHistory = () => {
     setStatusFilter,
     isAddDialogOpen,
     setIsAddDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    isViewDialogOpen,
-    setIsViewDialogOpen,
-    currentRecord,
-    handleViewRecord,
-    handleEditRecord,
-    handleDeleteRecord,
     handleAddSuccess,
-    handleEditSuccess,
+    loading,
     vaccineCount,
     examCount,
     treatmentCount,
@@ -189,6 +127,6 @@ export const useHealthHistory = () => {
     completedCount,
     inProgressCount,
     scheduledCount,
-    upcomingEvents
+    upcomingEvents,
   };
 };

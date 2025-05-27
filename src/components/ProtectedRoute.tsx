@@ -1,7 +1,7 @@
 
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuthContext";
+import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 
 interface ProtectedRouteProps {
   children?: ReactNode;
@@ -16,11 +16,10 @@ const ProtectedRoute = ({
   noViewers = false,
   editorsOnly = false
 }: ProtectedRouteProps) => {
-  const { user, loading, isAdmin, isViewer, isEditor } = useAuth();
+  const { user, loading, isAdmin, isViewer, isEditor } = useSimpleAuth();
   const location = useLocation();
 
   if (loading) {
-    // Exibir um indicador de carregamento enquanto verifica a autenticação
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-farm"></div>
@@ -28,27 +27,22 @@ const ProtectedRoute = ({
     );
   }
 
-  // Se não estiver autenticado, redirecionar para a página de login
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Se a rota for apenas para admins e o usuário não for admin
   if (adminOnly && !isAdmin()) {
     return <Navigate to="/dashboard" replace />;
   }
   
-  // Se a rota for apenas para editores e o usuário não for admin nem editor
   if (editorsOnly && !isAdmin() && !isEditor()) {
     return <Navigate to="/dashboard" replace />;
   }
   
-  // Se a rota não permitir visualizadores e o usuário for visualizador
   if (noViewers && isViewer()) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Always render children when provided
   return <>{children}</>;
 };
 
