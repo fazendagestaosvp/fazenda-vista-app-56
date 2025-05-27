@@ -67,15 +67,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("Role encontrado na tabela:", userRoleData);
         
         // Mapear baseado no campo 'role' da tabela user_roles
-        switch (userRoleData.role) {
+        // Fix: Proper mapping from database roles to UI roles
+        const dbRole = userRoleData.role;
+        switch (dbRole) {
           case 'admin':
             uiRole = 'admin';
             break;
           case 'viewer':
             uiRole = 'viewer';
             break;
-          case 'user':
-          case 'editor':
+          case 'user': // Database role "user" maps to UI role "editor"
+            uiRole = 'editor';
+            break;
           default:
             uiRole = 'editor';
             break;
