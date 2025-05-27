@@ -58,9 +58,9 @@ function App() {
             
             {/* Configurações */}
             <Route path="configuracoes" element={<Configuracoes />} />
-            <Route path="profile" element={<UserProfile />} />
-            <Route path="security" element={<SecuritySettings />} />
-            <Route path="notifications" element={<NotificationSettings />} />
+            <Route path="configuracoes/perfil" element={<UserProfile />} />
+            <Route path="configuracoes/seguranca" element={<SecuritySettings />} />
+            <Route path="configuracoes/notificacoes" element={<NotificationSettings />} />
             
             {/* Rotas de administração */}
             <Route path="admin/users" element={<UserManagement />} />
