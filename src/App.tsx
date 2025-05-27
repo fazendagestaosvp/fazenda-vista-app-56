@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,6 +35,8 @@ import AdminPromoteViewer from "./pages/AdminPromoteViewer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+console.log("App component rendering - this should be the only Router in the app");
 
 function App() {
   return (
