@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthContext";
 
 interface ProtectedRouteProps {
@@ -18,8 +18,6 @@ const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, loading, isAdmin, isViewer, isEditor } = useAuth();
   const location = useLocation();
-
-  console.log("ProtectedRoute rendering - no Router should be created here");
 
   if (loading) {
     // Exibir um indicador de carregamento enquanto verifica a autenticação
@@ -50,8 +48,8 @@ const ProtectedRoute = ({
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Always render children - no Outlet needed since we're not using nested routes
-  return <>{children}</>;
+  // Use children if provided, otherwise use Outlet for nested routes
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;
