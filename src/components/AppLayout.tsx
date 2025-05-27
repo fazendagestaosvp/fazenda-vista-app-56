@@ -1,4 +1,3 @@
-
 import { useState, useEffect, ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Menu, Search, Plus } from "lucide-react";
@@ -13,6 +12,8 @@ interface AppLayoutProps {
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
+  console.log("AppLayout rendering - should NOT create any Router");
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     // Verificar se há preferência salva no localStorage
     const savedState = localStorage.getItem('sidebarState');

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -37,185 +36,193 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 console.log("App component rendering - this should be the only Router in the app");
+console.log("About to render BrowserRouter");
 
 function App() {
+  console.log("Inside App function - before return");
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              
-              {/* Protected routes with layout */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Dashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/animais" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Animais />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/gestao-gado" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <GestaoGado />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/gestao-cavalos" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <GestaoCavalos />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/historico-saude" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <HistoricoSaude />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/reproducao" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Reproducao />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/relatorios" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Relatorios />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/documentos" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Documentos />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/calendario" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Calendario />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/configuracoes" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Configuracoes />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/user-profile" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <UserProfile />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/security-settings" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <SecuritySettings />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/notification-settings" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <NotificationSettings />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/user-management" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <UserManagement />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/user-access-control" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <UserAccessControl />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/user-role-management" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <UserRoleManagement />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin-role-management" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminRoleManagement />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin-promote" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminPromote />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin-promote-editor" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminPromoteEditor />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin-promote-viewer" element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminPromoteViewer />
-                  </AppLayout>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
+        <div data-component="app-wrapper">
+          {console.log("Before AuthProvider")}
+          <AuthProvider>
+            {console.log("Inside AuthProvider, before BrowserRouter")}
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              {console.log("Inside BrowserRouter")}
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                
+                {/* Protected routes with layout */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Dashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/animais" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Animais />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/gestao-gado" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <GestaoGado />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/gestao-cavalos" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <GestaoCavalos />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/historico-saude" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <HistoricoSaude />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/reproducao" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Reproducao />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/relatorios" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Relatorios />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/documentos" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Documentos />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/calendario" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Calendario />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/configuracoes" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Configuracoes />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/user-profile" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <UserProfile />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/security-settings" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <SecuritySettings />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/notification-settings" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <NotificationSettings />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/user-management" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <UserManagement />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/user-access-control" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <UserAccessControl />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/user-role-management" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <UserRoleManagement />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin-role-management" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminRoleManagement />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin-promote" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminPromote />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin-promote-editor" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminPromoteEditor />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin-promote-viewer" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminPromoteViewer />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
