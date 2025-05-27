@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,22 +37,18 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 console.log("App component rendering - this should be the only Router in the app");
-console.log("About to render BrowserRouter");
 
 function App() {
-  console.log("Inside App function - before return");
+  console.log("App function called - single BrowserRouter should be created");
   
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div data-component="app-wrapper">
-          {console.log("Before AuthProvider")}
           <AuthProvider>
-            {console.log("Inside AuthProvider, before BrowserRouter")}
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              {console.log("Inside BrowserRouter")}
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
