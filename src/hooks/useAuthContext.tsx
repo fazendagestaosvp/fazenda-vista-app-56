@@ -48,34 +48,68 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setRoleLoading(true);
       
-      // Usar a função do banco para obter o role
-      const { data, error } = await supabase.rpc('get_user_role', {
-        user_id: user.id
-      });
-
-      if (error) {
-        console.error('Erro ao buscar role do usuário:', error);
-        setCurrentUserRole('editor'); // Default
-        return;
-      }
-
-      // Mapear os roles do banco para UiRole
-      const dbRole = data || 'EDITOR';
-      let uiRole: UiRole;
+      console.log("Buscando role para usuário:", user.id);
       
-      switch (dbRole) {
-        case 'ADM':
-          uiRole = 'admin';
-          break;
-        case 'VISUALIZADOR':
-          uiRole = 'viewer';
-          break;
-        case 'EDITOR':
-        default:
-          uiRole = 'editor';
-          break;
+      // Primeiro, tentar buscar na tabela user_roles
+      const { data: userRoleData, error: userRoleError } = await supabase
+        .from('user_roles')
+        .select('role, role_type')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userRoleError && userRoleError.code !== 'PGRST116') {
+        console.error('Erro ao buscar role na tabela user_roles:', userRoleError);
       }
 
+      let uiRole: UiRole = 'editor'; // Default
+
+      if (userRoleData) {
+        console.log("Role encontrado na tabela:", userRoleData);
+        
+        // Mapear baseado no campo 'role' da tabela user_roles
+        switch (userRoleData.role) {
+          case 'admin':
+            uiRole = 'admin';
+            break;
+          case 'viewer':
+            uiRole = 'viewer';
+            break;
+          case 'user':
+          case 'editor':
+          default:
+            uiRole = 'editor';
+            break;
+        }
+      } else {
+        // Se não encontrou na tabela, usar a função RPC como fallback
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_user_role', {
+          user_id: user.id
+        });
+
+        if (rpcError) {
+          console.error('Erro ao buscar role via RPC:', rpcError);
+        } else {
+          console.log("Role via RPC:", rpcData);
+          
+          // Mapear os roles do banco para UiRole
+          const dbRole = rpcData || 'EDITOR';
+          
+          switch (dbRole) {
+            case 'ADM':
+              uiRole = 'admin';
+              break;
+            case 'VISUALIZADOR':
+              uiRole = 'viewer';
+              break;
+            case 'EDITOR':
+            default:
+              uiRole = 'editor';
+              break;
+          }
+        }
+      }
+
+      console.log("Role final definido:", uiRole);
       setCurrentUserRole(uiRole);
     } catch (error) {
       console.error('Erro ao buscar role:', error);
@@ -86,7 +120,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   // Use os role checks baseados no sistema atualizado
-  const isAdmin = () => currentUserRole === "admin";
+  const isAdmin = () => {
+    const result = currentUserRole === "admin";
+    console.log("isAdmin check:", currentUserRole, "->", result);
+    return result;
+  };
+  
   const isViewer = () => currentUserRole === "viewer";
   const isEditor = () => currentUserRole === "editor";
   const canEdit = () => currentUserRole === "admin" || currentUserRole === "editor";
@@ -160,7 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         session: session as Session,
         user,
-        userRole: currentUserRole, // Agora retorna UiRole corretamente
+        userRole: currentUserRole,
         loading,
         signIn: wrappedSignIn,
         signUp: wrappedSignUp,
