@@ -14,40 +14,12 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-// Define the allowed event types
-type EventType = "health" | "maintenance" | "supply" | "harvest" | "other";
-
-// Define the Event interface
-interface Event {
-  id: string;
-  title: string;
-  date: Date;
-  type: EventType;
-}
+import { useCalendar, EventType } from "@/hooks/use-calendar";
+import { Trash2 } from "lucide-react";
 
 const CalendarioPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: "1",
-      title: "Vacinação do Rebanho",
-      date: new Date(2025, 4, 10),
-      type: "health",
-    },
-    {
-      id: "2",
-      title: "Manutenção de Cercas",
-      date: new Date(2025, 4, 15),
-      type: "maintenance",
-    },
-    {
-      id: "3",
-      title: "Compra de Ração",
-      date: new Date(2025, 4, 20),
-      type: "supply",
-    },
-  ]);
+  const { events, loading, addEvent, deleteEvent } = useCalendar();
   
   const [newEvent, setNewEvent] = useState<{
     title: string;
@@ -73,20 +45,21 @@ const CalendarioPage = () => {
     .slice(0, 5);
 
   // Handle form submission for new events
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (newEvent.title && newEvent.date) {
-      const event: Event = {
-        id: Math.random().toString(36).substr(2, 9),
+      const result = await addEvent({
         title: newEvent.title,
         date: newEvent.date,
         type: newEvent.type,
-      };
-      setEvents([...events, event]);
-      setNewEvent({
-        title: "",
-        type: "other",
-        date: new Date(),
       });
+
+      if (result?.success) {
+        setNewEvent({
+          title: "",
+          type: "other",
+          date: new Date(),
+        });
+      }
     }
   };
 
@@ -103,6 +76,21 @@ const CalendarioPage = () => {
         return "bg-green-500";
       default:
         return "bg-gray-500";
+    }
+  };
+
+  const getEventTypeLabel = (type: EventType) => {
+    switch (type) {
+      case "health":
+        return "Saúde";
+      case "maintenance":
+        return "Manutenção";
+      case "supply":
+        return "Suprimentos";
+      case "harvest":
+        return "Colheita";
+      default:
+        return "Outro";
     }
   };
 
@@ -139,14 +127,24 @@ const CalendarioPage = () => {
             {selectedDateEvents.length > 0 ? (
               <div className="space-y-4">
                 {selectedDateEvents.map((event) => (
-                  <div key={event.id} className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${getEventColor(event.type)}`}></div>
-                    <div>
-                      <p className="font-medium">{event.title}</p>
-                      <p className="text-sm text-gray-500">
-                        {format(event.date, "HH:mm", { locale: ptBR })}
-                      </p>
+                  <div key={event.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${getEventColor(event.type)}`}></div>
+                      <div>
+                        <p className="font-medium">{event.title}</p>
+                        <p className="text-sm text-gray-500">
+                          {getEventTypeLabel(event.type)}
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteEvent(event.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -210,8 +208,12 @@ const CalendarioPage = () => {
                 />
               </div>
 
-              <Button className="w-full bg-farm hover:bg-farm-dark" onClick={handleAddEvent}>
-                Adicionar Evento
+              <Button 
+                className="w-full bg-farm hover:bg-farm-dark" 
+                onClick={handleAddEvent}
+                disabled={loading || !newEvent.title || !newEvent.date}
+              >
+                {loading ? "Adicionando..." : "Adicionar Evento"}
               </Button>
             </div>
           </CardContent>
@@ -225,14 +227,24 @@ const CalendarioPage = () => {
             {upcomingEvents.length > 0 ? (
               <div className="space-y-4">
                 {upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${getEventColor(event.type)}`}></div>
-                    <div>
-                      <p className="font-medium">{event.title}</p>
-                      <p className="text-sm text-gray-500">
-                        {format(event.date, "d MMM yyyy", { locale: ptBR })}
-                      </p>
+                  <div key={event.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${getEventColor(event.type)}`}></div>
+                      <div>
+                        <p className="font-medium">{event.title}</p>
+                        <p className="text-sm text-gray-500">
+                          {format(event.date, "d MMM yyyy", { locale: ptBR })} - {getEventTypeLabel(event.type)}
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteEvent(event.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>

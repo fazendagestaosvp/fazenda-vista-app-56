@@ -1,37 +1,21 @@
 
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/hooks/use-settings";
 
 const NotificationSettings = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  const [notificationSettings, setNotificationSettings] = useState({
-    email: true,
-    reminders: true,
-    healthAlerts: true,
-    productionReports: false,
-    systemUpdates: true,
-  });
+  const { settings, saveSettings, loading } = useSettings();
 
-  const handleToggle = (setting: string) => {
-    setNotificationSettings(prev => ({
-      ...prev,
-      [setting]: !prev[setting as keyof typeof notificationSettings]
-    }));
-  };
-
-  const handleSave = () => {
-    // Simulate saving notification settings
-    toast({
-      title: "Notificações atualizadas",
-      description: "Suas preferências de notificação foram salvas.",
-    });
+  const handleToggle = (setting: keyof typeof settings) => {
+    const newSettings = {
+      ...settings,
+      [setting]: !settings[setting]
+    };
+    saveSettings(newSettings);
   };
 
   return (
@@ -61,8 +45,9 @@ const NotificationSettings = () => {
             </div>
             <Switch
               id="email-notifications"
-              checked={notificationSettings.email}
+              checked={settings.email}
               onCheckedChange={() => handleToggle("email")}
+              disabled={loading}
             />
           </div>
           
@@ -73,8 +58,9 @@ const NotificationSettings = () => {
             </div>
             <Switch
               id="reminders"
-              checked={notificationSettings.reminders}
+              checked={settings.reminders}
               onCheckedChange={() => handleToggle("reminders")}
+              disabled={loading}
             />
           </div>
           
@@ -85,8 +71,9 @@ const NotificationSettings = () => {
             </div>
             <Switch
               id="health-alerts"
-              checked={notificationSettings.healthAlerts}
+              checked={settings.healthAlerts}
               onCheckedChange={() => handleToggle("healthAlerts")}
+              disabled={loading}
             />
           </div>
           
@@ -97,8 +84,9 @@ const NotificationSettings = () => {
             </div>
             <Switch
               id="production-reports"
-              checked={notificationSettings.productionReports}
+              checked={settings.productionReports}
               onCheckedChange={() => handleToggle("productionReports")}
+              disabled={loading}
             />
           </div>
           
@@ -109,13 +97,10 @@ const NotificationSettings = () => {
             </div>
             <Switch
               id="system-updates"
-              checked={notificationSettings.systemUpdates}
+              checked={settings.systemUpdates}
               onCheckedChange={() => handleToggle("systemUpdates")}
+              disabled={loading}
             />
-          </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSave}>Salvar Preferências</Button>
           </div>
         </CardContent>
       </Card>

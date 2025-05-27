@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/use-profile";
 
 const SecuritySettings = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { updatePassword, loading } = useProfile();
   
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -26,7 +25,7 @@ const SecuritySettings = () => {
     setError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.newPassword !== formData.confirmPassword) {
@@ -39,17 +38,17 @@ const SecuritySettings = () => {
       return;
     }
     
-    // Simulate password update (would connect to Supabase in a real implementation)
-    toast({
-      title: "Senha alterada",
-      description: "Sua senha foi atualizada com sucesso.",
-    });
+    const result = await updatePassword(formData.currentPassword, formData.newPassword);
     
-    setFormData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    if (result.success) {
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } else {
+      setError(result.error || "Erro ao alterar senha");
+    }
   };
 
   return (
@@ -116,7 +115,9 @@ const SecuritySettings = () => {
             </div>
             
             <div className="flex justify-end">
-              <Button type="submit">Alterar Senha</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Alterando..." : "Alterar Senha"}
+              </Button>
             </div>
           </form>
         </CardContent>

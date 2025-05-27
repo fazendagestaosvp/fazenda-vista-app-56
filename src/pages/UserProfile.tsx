@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,35 +7,49 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/use-profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Phone } from "lucide-react";
 
 const UserProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { updateProfile, loading } = useProfile();
   
   const [formData, setFormData] = useState({
-    fullName: user?.email?.split("@")[0] || "",
+    fullName: "",
     email: user?.email || "",
     phone: "",
     bio: "",
   });
+
+  useEffect(() => {
+    if (user?.email) {
+      setFormData(prev => ({
+        ...prev,
+        email: user.email,
+        fullName: user.email.split("@")[0] || "",
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulate profile update (would connect to Supabase in a real implementation)
-    toast({
-      title: "Perfil atualizado",
-      description: "Suas informações foram atualizadas com sucesso.",
+    const result = await updateProfile({
+      fullName: formData.fullName,
+      phone: formData.phone,
+      bio: formData.bio,
     });
+
+    if (result.success) {
+      // Sucesso já é tratado no hook
+    }
   };
 
   // Obter as iniciais do email para o avatar
@@ -93,6 +107,7 @@ const UserProfile = () => {
                     className="pl-10"
                     value={formData.fullName}
                     onChange={handleChange}
+                    required
                   />
                 </div>
               </div>
@@ -142,7 +157,13 @@ const UserProfile = () => {
               </div>
               
               <div className="flex justify-end">
-                <Button type="submit" className="bg-farm hover:bg-farm-dark">Salvar Alterações</Button>
+                <Button 
+                  type="submit" 
+                  className="bg-farm hover:bg-farm-dark"
+                  disabled={loading}
+                >
+                  {loading ? "Salvando..." : "Salvar Alterações"}
+                </Button>
               </div>
             </form>
           </CardContent>
