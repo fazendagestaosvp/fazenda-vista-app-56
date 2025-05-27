@@ -17,4 +17,4 @@ export {
   updateUserRole
 } from './adminService';
 
-export * from './userManagementService';
+export * from './management';

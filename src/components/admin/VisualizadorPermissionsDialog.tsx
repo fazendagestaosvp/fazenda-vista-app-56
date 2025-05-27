@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -11,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useRoleManagement, UserWithRole, ContaData } from "@/hooks/useRoleManagement";
+import { useRoleManagement, UserWithRole, ContaData } from "@/hooks/role-management";
 
 interface VisualizadorPermissionsDialogProps {
   open: boolean;

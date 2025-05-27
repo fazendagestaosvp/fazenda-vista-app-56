@@ -1,5 +1,5 @@
 
-// Re-export all user management functionality from the new modular structure
+// User management service - consolidated exports
 export * from "./roleManagement";
 export * from "./profileManagement";
 export * from "./usersList";

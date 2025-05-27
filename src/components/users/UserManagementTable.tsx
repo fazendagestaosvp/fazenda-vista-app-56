@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchUsers, removeUser } from "@/services/user/userManagementService";
+import { fetchUsers, removeUser } from "@/services/user/management";
 import UserTableHeader from "./management/UserTableHeader";
 import UsersTable from "./management/UsersTable";
 import DeleteUserDialog from "./management/DeleteUserDialog";

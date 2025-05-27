@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateUser } from "@/services/user/userManagementService";
+import { updateUser } from "@/services/user/management";
 import { UiRole } from "@/types/user.types";
 
 interface UserRoleSelectProps {
