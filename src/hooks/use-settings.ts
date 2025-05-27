@@ -46,7 +46,7 @@ export const useSettings = () => {
       }
 
       if (data?.settings) {
-        setSettings(data.settings as NotificationSettings);
+        setSettings(data.settings as unknown as NotificationSettings);
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -62,7 +62,7 @@ export const useSettings = () => {
         .from("user_settings")
         .upsert({
           user_id: user.id,
-          settings: newSettings,
+          settings: newSettings as any,
           updated_at: new Date().toISOString(),
         });
 

@@ -14,6 +14,16 @@ export interface Event {
   user_id?: string;
 }
 
+interface DatabaseEvent {
+  id: string;
+  title: string;
+  date: string;
+  type: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useCalendar = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -39,9 +49,12 @@ export const useCalendar = () => {
 
       if (error) throw error;
 
-      const formattedEvents = data.map(event => ({
-        ...event,
-        date: new Date(event.date)
+      const formattedEvents: Event[] = (data as DatabaseEvent[]).map(event => ({
+        id: event.id,
+        title: event.title,
+        date: new Date(event.date),
+        type: event.type as EventType,
+        user_id: event.user_id
       }));
 
       setEvents(formattedEvents);
@@ -75,9 +88,12 @@ export const useCalendar = () => {
 
       if (error) throw error;
 
-      const newEvent = {
-        ...data,
-        date: new Date(data.date)
+      const newEvent: Event = {
+        id: (data as DatabaseEvent).id,
+        title: (data as DatabaseEvent).title,
+        date: new Date((data as DatabaseEvent).date),
+        type: (data as DatabaseEvent).type as EventType,
+        user_id: (data as DatabaseEvent).user_id
       };
 
       setEvents(prev => [...prev, newEvent].sort((a, b) => a.date.getTime() - b.date.getTime()));
