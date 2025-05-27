@@ -67,40 +67,70 @@ export const useSimpleAuth = () => {
 
   const fetchUserRole = async (userId: string) => {
     try {
-      console.log("Buscando role para usuário:", userId);
+      console.log("=== FETCHUSERROLE DEBUG ===");
+      console.log("1. UserId recebido:", userId);
+      console.log("2. Fazendo query para user_roles...");
+      
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .single();
 
+      console.log("3. Resposta da query:");
+      console.log("   - Data:", data);
+      console.log("   - Error:", error);
+      console.log("   - Role encontrada no DB:", data?.role);
+
       if (error) {
-        console.error('Erro ao buscar role do usuário:', error);
+        console.error('4. Erro ao buscar role do usuário:', error);
+        console.log('5. Definindo role padrão como editor devido ao erro');
         setUserRole('editor');
         return;
       }
 
       if (data) {
         const dbRole = data.role;
-        console.log("Role do usuário no DB:", dbRole);
+        console.log("6. Role no DB (raw):", dbRole);
+        console.log("7. Tipo da role:", typeof dbRole);
+        
+        let mappedRole: UiRole;
         switch (dbRole) {
           case 'admin':
-            setUserRole('admin');
+            mappedRole = 'admin';
+            console.log("8. Mapeando 'admin' -> 'admin'");
             break;
           case 'viewer':
-            setUserRole('viewer');
+            mappedRole = 'viewer';
+            console.log("8. Mapeando 'viewer' -> 'viewer'");
             break;
           default:
-            setUserRole('editor');
+            mappedRole = 'editor';
+            console.log("8. Mapeando '" + dbRole + "' -> 'editor' (default)");
             break;
         }
+        
+        console.log("9. Role final definida:", mappedRole);
+        setUserRole(mappedRole);
       } else {
-        console.log("Nenhuma role encontrada, definindo como editor");
+        console.log("10. Nenhum dado retornado, definindo como editor");
         setUserRole('editor');
       }
+      
+      console.log("=== FIM FETCHUSERROLE DEBUG ===");
     } catch (error) {
-      console.error('Erro ao buscar role do usuário:', error);
+      console.error('Erro crítico ao buscar role do usuário:', error);
       setUserRole('editor');
+    }
+  };
+
+  // Função para forçar refresh da role - para debug
+  const refreshUserRole = async () => {
+    if (user) {
+      console.log("🔄 REFRESH MANUAL DA ROLE INICIADO");
+      await fetchUserRole(user.id);
+    } else {
+      console.log("❌ Não é possível fazer refresh: usuário não encontrado");
     }
   };
 
@@ -158,7 +188,12 @@ export const useSimpleAuth = () => {
   };
 
   // Role check functions
-  const isAdmin = () => userRole === 'admin';
+  const isAdmin = () => {
+    const result = userRole === 'admin';
+    console.log("isAdmin() check:", userRole, "->", result);
+    return result;
+  };
+  
   const isEditor = () => userRole === 'editor';
   const isViewer = () => userRole === 'viewer';
   const canEdit = () => userRole === 'admin' || userRole === 'editor';
@@ -176,5 +211,6 @@ export const useSimpleAuth = () => {
     isEditor,
     isViewer,
     canEdit,
+    refreshUserRole, // Nova função para debug
   };
 };
