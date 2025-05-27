@@ -104,6 +104,11 @@ export const useSimpleAuth = () => {
             mappedRole = 'viewer';
             console.log("8. Mapeando 'viewer' -> 'viewer'");
             break;
+          case 'editor':
+          case 'user': // Suporte para backward compatibility
+            mappedRole = 'editor';
+            console.log("8. Mapeando '" + dbRole + "' -> 'editor'");
+            break;
           default:
             mappedRole = 'editor';
             console.log("8. Mapeando '" + dbRole + "' -> 'editor' (default)");

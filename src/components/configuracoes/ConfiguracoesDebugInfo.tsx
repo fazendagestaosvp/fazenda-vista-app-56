@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 export default function ConfiguracoesDebugInfo() {
   const { userRole, isAdmin, loading, user, refreshUserRole } = useAuth();
@@ -54,11 +55,20 @@ export default function ConfiguracoesDebugInfo() {
     }
   };
 
+  const getStatusBadge = () => {
+    if (loading) return <Badge variant="secondary">Carregando...</Badge>;
+    if (isAdmin()) return <Badge className="bg-red-500 text-white">Admin</Badge>;
+    if (userRole === 'editor') return <Badge className="bg-green-500 text-white">Editor</Badge>;
+    if (userRole === 'viewer') return <Badge className="bg-blue-500 text-white">Viewer</Badge>;
+    return <Badge variant="destructive">Sem Role</Badge>;
+  };
+
   return (
     <Card className="border-yellow-200 bg-yellow-50">
       <CardHeader>
         <CardTitle className="text-yellow-800 flex items-center gap-2">
           🐛 Debug Info - Diagnóstico de Role
+          {getStatusBadge()}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
