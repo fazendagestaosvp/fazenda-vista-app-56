@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthContext";
 import { Badge } from "@/components/ui/badge";
-import { User, Shield, Key, Bell } from "lucide-react";
+import { User, Shield, Bell } from "lucide-react";
 
 export default function BasicSettingsGrid() {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ export default function BasicSettingsGrid() {
   const getRoleBadge = () => {
     switch (userRole) {
       case "admin":
-        return <Badge className="bg-red-500 text-white">Editor</Badge>;
+        return <Badge className="bg-green-500 text-white">Admin</Badge>;
       case "editor":
         return <Badge className="bg-green-500 text-white">Editor</Badge>;
       case "viewer":
@@ -25,7 +25,7 @@ export default function BasicSettingsGrid() {
 
   const getStatusBadge = () => {
     return userRole === "admin" ? 
-      <Badge className="bg-green-500 text-white">Ativo</Badge> : 
+      <Badge className="bg-green-500 text-white">Admin</Badge> : 
       <Badge className="bg-yellow-500 text-white">Não Admin</Badge>;
   };
 
