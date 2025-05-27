@@ -37,42 +37,29 @@ interface UserEditDialogProps {
 }
 
 const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogProps) => {
-  const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<UiRole>("viewer");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
-      setFullName(user.name);
       setRole(user.role as UiRole);
     }
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!fullName) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Por favor, preencha o nome completo",
-        variant: "destructive",
-      });
-      return;
-    }
 
     try {
       setIsLoading(true);
       
       console.log("Atualizando usuário:", {
         userId: user.id,
-        fullName,
         role
       });
       
       const result = await updateUser({
         userId: user.id,
-        fullName,
         role
       });
       
@@ -82,7 +69,7 @@ const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogP
 
       toast({
         title: "Usuário atualizado com sucesso",
-        description: `As informações de ${fullName} foram atualizadas`,
+        description: `O papel do usuário foi atualizado para ${role}`,
       });
 
       // Limpar o formulário e fechar o diálogo
@@ -107,21 +94,19 @@ const UserEditDialog = ({ open, onOpenChange, onSuccess, user }: UserEditDialogP
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
             <DialogDescription>
-              Atualize as informações do usuário.
+              Atualize o papel do usuário.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Nome Completo
+                Nome
               </Label>
               <Input
                 id="name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                value={user.name}
                 className="col-span-3"
-                disabled={isLoading}
-                required
+                disabled
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">

@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 
 export interface HealthRecord {
@@ -27,87 +26,49 @@ export const useHealthHistory = () => {
 
   useEffect(() => {
     if (user) {
-      fetchHealthHistory();
-    }
-  }, [user]);
-
-  const fetchHealthHistory = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
+      // Mock data por enquanto, até termos a tabela health_history no Supabase
+      const mockRecords: HealthRecord[] = [
+        {
+          id: "1",
+          animalId: "BG-001",
+          animalName: "Estrela",
+          animalType: "Gado",
+          type: "Vacinação",
+          procedure: "Febre Aftosa",
+          date: new Date(2024, 0, 15),
+          veterinarian: "Dr. Carlos Silva",
+          status: "Concluído",
+          notes: "Vacinação aplicada sem intercorrências"
+        },
+        {
+          id: "2",
+          animalId: "CV-001",
+          animalName: "Thunder",
+          animalType: "Cavalo",
+          type: "Exame",
+          procedure: "Exame de rotina",
+          date: new Date(2024, 1, 20),
+          veterinarian: "Dra. Ana Costa",
+          status: "Agendado",
+          notes: "Exame geral de saúde"
+        }
+      ];
       
-      const { data: healthData, error } = await supabase
-        .from('health_history')
-        .select(`
-          *,
-          animals:animal_id (
-            name,
-            species,
-            identification
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching health history:', error);
-        return;
-      }
-
-      const formattedRecords: HealthRecord[] = (healthData || []).map((record: any) => ({
-        id: record.id,
-        animalId: record.animals?.identification || record.animal_id,
-        animalName: record.animals?.name || 'Animal não encontrado',
-        animalType: record.animals?.species || 'Desconhecido',
-        type: record.type,
-        procedure: record.description || record.type,
-        date: new Date(record.date),
-        veterinarian: record.veterinarian || 'Não informado',
-        status: record.notes?.includes('concluído') ? 'Concluído' : 
-                record.notes?.includes('agendado') ? 'Agendado' : 'Em andamento',
-        notes: record.notes || ''
-      }));
-
-      setRecords(formattedRecords);
-    } catch (error) {
-      console.error('Error fetching health history:', error);
-    } finally {
+      setRecords(mockRecords);
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const addHealthRecord = async (newRecord: Omit<HealthRecord, 'id'>) => {
     if (!user) return;
 
     try {
-      // Find the animal by identification
-      const { data: animals, error: animalError } = await supabase
-        .from('animals')
-        .select('id')
-        .eq('identification', newRecord.animalId)
-        .eq('user_id', user.id)
-        .single();
+      const recordWithId: HealthRecord = {
+        ...newRecord,
+        id: `HR-${Date.now()}`
+      };
 
-      if (animalError || !animals) {
-        throw new Error('Animal não encontrado');
-      }
-
-      const { error } = await supabase
-        .from('health_history')
-        .insert({
-          animal_id: animals.id,
-          user_id: user.id,
-          date: newRecord.date.toISOString().split('T')[0],
-          type: newRecord.type,
-          description: newRecord.procedure,
-          veterinarian: newRecord.veterinarian,
-          notes: newRecord.notes || '',
-        });
-
-      if (error) throw error;
-
-      await fetchHealthHistory();
+      setRecords(prev => [...prev, recordWithId]);
     } catch (error) {
       console.error('Error adding health record:', error);
       throw error;

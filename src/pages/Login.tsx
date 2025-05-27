@@ -49,19 +49,11 @@ const Login = () => {
     setLoginError(null);
     try {
       console.log("Tentando login com:", email);
-      await signIn(email, password,
-      // Função de sucesso
-      () => {
-        console.log("Login bem-sucedido, redirecionando para dashboard");
-        navigate('/dashboard');
-      },
-      // Função de erro
-      (errorMessage: string) => {
-        console.error("Erro ao fazer login:", errorMessage);
-        setLoginError(errorMessage);
-      });
+      await signIn(email, password);
+      console.log("Login bem-sucedido, redirecionando para dashboard");
+      navigate('/dashboard');
     } catch (error: any) {
-      console.error("Erro capturado no componente Login:", error);
+      console.error("Erro ao fazer login:", error);
       setLoginError(error.message || "Ocorreu um erro durante o login");
     }
   };
@@ -81,12 +73,19 @@ const Login = () => {
     setIsResetting(true);
     
     try {
-      const result = await resetPassword(resetEmail);
-      
-      if (result.success) {
-        setIsResetDialogOpen(false);
-        setResetEmail("");
-      }
+      await resetPassword(resetEmail);
+      setIsResetDialogOpen(false);
+      setResetEmail("");
+      toast({
+        title: "Email enviado",
+        description: "Verifique sua caixa de entrada para redefinir a senha.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar email",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setIsResetting(false);
     }

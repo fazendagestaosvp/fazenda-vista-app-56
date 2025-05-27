@@ -29,10 +29,7 @@ export const useRoleManagement = () => {
         .from('user_roles')
         .select(`
           user_id,
-          role,
-          profiles:user_id (
-            full_name
-          )
+          role
         `);
 
       if (error) throw error;
@@ -41,12 +38,19 @@ export const useRoleManagement = () => {
       const userIds = data?.map(item => item.user_id) || [];
       const { data: emailData } = await supabase.rpc('get_user_emails', { user_ids: userIds });
 
+      // Get profiles
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds);
+
       const users: UserWithRole[] = (data || []).map(item => {
         const emailInfo = emailData?.find(e => e.id === item.user_id);
+        const profileInfo = profilesData?.find(p => p.id === item.user_id);
         return {
           id: item.user_id,
           email: emailInfo?.email || 'Email não encontrado',
-          full_name: item.profiles?.full_name,
+          full_name: profileInfo?.full_name,
           role: item.role === 'admin' ? 'ADM' : item.role === 'viewer' ? 'VISUALIZADOR' : 'EDITOR'
         };
       });
