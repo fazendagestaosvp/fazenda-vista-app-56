@@ -11,8 +11,8 @@ const Configuracoes = () => {
 
   console.log("UserRole em Configuracoes:", userRole);
   
-  // Verificação direta do papel do usuário para exibir funcionalidades administrativas
-  const isAdminUser = userRole === "ADM";
+  // Verificação usando o tipo UiRole correto
+  const isAdminUser = userRole === "admin";
   
   console.log("isAdminUser:", isAdminUser);
 

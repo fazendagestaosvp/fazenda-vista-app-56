@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading 
   } = useAuthProvider();
   
-  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<UiRole | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
   
   const { 
@@ -55,24 +55,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Erro ao buscar role do usuário:', error);
-        setCurrentUserRole('EDITOR'); // Default
+        setCurrentUserRole('editor'); // Default
         return;
       }
 
-      setCurrentUserRole(data || 'EDITOR');
+      // Mapear os roles do banco para UiRole
+      const dbRole = data || 'EDITOR';
+      let uiRole: UiRole;
+      
+      switch (dbRole) {
+        case 'ADM':
+          uiRole = 'admin';
+          break;
+        case 'VISUALIZADOR':
+          uiRole = 'viewer';
+          break;
+        case 'EDITOR':
+        default:
+          uiRole = 'editor';
+          break;
+      }
+
+      setCurrentUserRole(uiRole);
     } catch (error) {
       console.error('Erro ao buscar role:', error);
-      setCurrentUserRole('EDITOR');
+      setCurrentUserRole('editor');
     } finally {
       setRoleLoading(false);
     }
   };
   
   // Use os role checks baseados no sistema atualizado
-  const isAdmin = () => currentUserRole === "ADM";
-  const isViewer = () => currentUserRole === "VISUALIZADOR";
-  const isEditor = () => currentUserRole === "EDITOR";
-  const canEdit = () => currentUserRole === "ADM" || currentUserRole === "EDITOR";
+  const isAdmin = () => currentUserRole === "admin";
+  const isViewer = () => currentUserRole === "viewer";
+  const isEditor = () => currentUserRole === "editor";
+  const canEdit = () => currentUserRole === "admin" || currentUserRole === "editor";
   
   const hasAccessLevel = (minimumLevel: UiRole) => {
     if (!currentUserRole) return false;
@@ -143,7 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         session: session as Session,
         user,
-        userRole: currentUserRole as UiRole, // Mapeando para compatibilidade
+        userRole: currentUserRole, // Agora retorna UiRole corretamente
         loading,
         signIn: wrappedSignIn,
         signUp: wrappedSignUp,
