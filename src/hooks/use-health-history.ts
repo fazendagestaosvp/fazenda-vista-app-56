@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 
-interface HealthRecord {
+export interface HealthRecord {
   id: string;
   animalId: string;
   animalName: string;
@@ -13,6 +13,7 @@ interface HealthRecord {
   date: Date;
   veterinarian: string;
   status: string;
+  notes?: string;
 }
 
 export const useHealthHistory = () => {
@@ -65,6 +66,7 @@ export const useHealthHistory = () => {
         veterinarian: record.veterinarian || 'Não informado',
         status: record.notes?.includes('concluído') ? 'Concluído' : 
                 record.notes?.includes('agendado') ? 'Agendado' : 'Em andamento',
+        notes: record.notes || ''
       }));
 
       setRecords(formattedRecords);
@@ -72,6 +74,43 @@ export const useHealthHistory = () => {
       console.error('Error fetching health history:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addHealthRecord = async (newRecord: Omit<HealthRecord, 'id'>) => {
+    if (!user) return;
+
+    try {
+      // Find the animal by identification
+      const { data: animals, error: animalError } = await supabase
+        .from('animals')
+        .select('id')
+        .eq('identification', newRecord.animalId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (animalError || !animals) {
+        throw new Error('Animal não encontrado');
+      }
+
+      const { error } = await supabase
+        .from('health_history')
+        .insert({
+          animal_id: animals.id,
+          user_id: user.id,
+          date: newRecord.date.toISOString().split('T')[0],
+          type: newRecord.type,
+          description: newRecord.procedure,
+          veterinarian: newRecord.veterinarian,
+          notes: newRecord.notes || '',
+        });
+
+      if (error) throw error;
+
+      await fetchHealthHistory();
+    } catch (error) {
+      console.error('Error adding health record:', error);
+      throw error;
     }
   };
 
@@ -87,9 +126,9 @@ export const useHealthHistory = () => {
     return matchesSearch && matchesAnimalType && matchesStatus;
   });
 
-  const handleAddSuccess = () => {
+  const handleAddSuccess = (record: HealthRecord) => {
     setIsAddDialogOpen(false);
-    fetchHealthHistory();
+    addHealthRecord(record).catch(console.error);
   };
 
   // Estatísticas
